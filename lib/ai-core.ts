@@ -1,4 +1,4 @@
-import { DEMAND_TYPES, getTypeById, type DemandData } from "@/lib/demand-map";
+import { type DemandData } from "@/lib/demand-map";
 import { validateRequired } from "@/lib/validate";
 import { generateDemandText } from "@/lib/generate-text";
 

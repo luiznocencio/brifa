@@ -9,7 +9,6 @@ import {
   type InterpretResult,
 } from "@/lib/ai-core";
 import { generateDemandText } from "@/lib/generate-text";
-import { validateRequired } from "@/lib/validate";
 import { DEMAND_TYPES, getFieldsForType, type DemandData } from "@/lib/demand-map";
 
 export const runtime = "nodejs";
@@ -30,6 +29,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
+  if (!["interpret", "review", "redact"].includes(body.action)) {
+    return NextResponse.json({ error: "ação desconhecida" }, { status: 400 });
+  }
+
   // Sem chave: modo mock determinístico.
   if (!isAiConfigured()) {
     return NextResponse.json(runMock(body));
@@ -48,7 +51,7 @@ export async function POST(req: Request) {
       return NextResponse.json(await aiRedact(client, body.demand ?? emptyDemand()));
     }
     return NextResponse.json({ error: "ação desconhecida" }, { status: 400 });
-  } catch (err) {
+  } catch {
     // Qualquer falha da IA cai no mock — a ferramenta nunca trava.
     return NextResponse.json(runMock(body));
   }

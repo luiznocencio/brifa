@@ -64,4 +64,47 @@ describe("generateDemandText", () => {
     // objetivo vazio ainda aparece como bloco rotulado
     expect(text).toContain("OBJETIVO");
   });
+
+  it("renderiza observacoes com rótulo quando preenchida", () => {
+    const comObservacoes: DemandData = {
+      typeId: "offline-sinalizacao",
+      values: {
+        cliente: "Loja X — Inauguração",
+        solicitante: "Ana",
+        objetivo: "Comunicar a nova loja na fachada",
+        publico: "Clientes do bairro",
+        observacoes: "Cuidado com a cor da marca",
+        prazo: "2026-09-05",
+        prioridade: "Alta",
+        aprovador: "Carlos",
+        medida_real: "200 x 90 cm",
+        material: "Lona",
+        quantidade: "1",
+        aplicacao_local: "Fachada da loja nova",
+      },
+    };
+    const text = generateDemandText(comObservacoes);
+    expect(text).toContain("Observações: Cuidado com a cor da marca");
+  });
+
+  it("mostra rótulo Observações mesmo quando vazio (consistência)", () => {
+    const semObservacoes: DemandData = {
+      typeId: "offline-sinalizacao",
+      values: {
+        cliente: "Loja X — Inauguração",
+        solicitante: "Ana",
+        objetivo: "Comunicar a nova loja na fachada",
+        publico: "Clientes do bairro",
+        prazo: "2026-09-05",
+        prioridade: "Alta",
+        aprovador: "Carlos",
+        medida_real: "200 x 90 cm",
+        material: "Lona",
+        quantidade: "1",
+        aplicacao_local: "Fachada da loja nova",
+      },
+    };
+    const text = generateDemandText(semObservacoes);
+    expect(text).toContain("Observações:");
+  });
 });

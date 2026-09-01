@@ -35,10 +35,8 @@ export function generateDemandText(demand: DemandData): string {
   const publico = [
     "PUBLICO / OBSERVACOES",
     line(labelOf("publico"), val(demand, "publico")),
-    val(demand, "observacoes"),
-  ]
-    .filter((l, i) => i < 2 || l.length > 0)
-    .join("\n");
+    line(labelOf("observacoes"), val(demand, "observacoes")),
+  ].join("\n");
 
   const aprovacao = ["APROVACAO", line(labelOf("aprovador"), val(demand, "aprovador"))].join("\n");
 

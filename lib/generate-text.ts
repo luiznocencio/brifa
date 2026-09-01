@@ -1,4 +1,4 @@
-import { getTypeById, effectiveTypeFields, TRUNK_FIELDS, type DemandData, type FieldDef } from "@/lib/demand-map";
+import { getTypeById, effectiveTypeFields, expandFields, TRUNK_FIELDS, type DemandData, type FieldDef } from "@/lib/demand-map";
 
 function val(demand: DemandData, id: string): string {
   return (demand.values[id] ?? "").trim();
@@ -27,7 +27,7 @@ export function generateDemandText(demand: DemandData): string {
 
   const objetivo = ["OBJETIVO", val(demand, "objetivo")].join("\n");
 
-  const specFields: FieldDef[] = effectiveTypeFields(demand);
+  const specFields: FieldDef[] = expandFields(effectiveTypeFields(demand), demand.values);
   const specLines = specFields.map((f) => line(f.label, val(demand, f.id)));
   const spec = ["ESPECIFICACAO TECNICA", ...specLines].join("\n");
 

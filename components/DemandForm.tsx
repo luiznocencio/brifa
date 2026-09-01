@@ -1,5 +1,5 @@
 "use client";
-import { TRUNK_FIELDS, DEMAND_TYPES, effectiveTypeFields, type DemandData } from "@/lib/demand-map";
+import { TRUNK_FIELDS, DEMAND_TYPES, effectiveTypeFields, expandFields, type DemandData } from "@/lib/demand-map";
 import { FieldRenderer } from "@/components/FieldRenderer";
 
 interface Props {
@@ -19,7 +19,9 @@ const sectionLegendStyle = {
 };
 
 export function DemandForm({ demand, onSetType, onSetValue, missingIds }: Props) {
-  const galho = effectiveTypeFields(demand);
+  // Tronco e galho já com os condicionais ativos revelados (cascata).
+  const trunk = expandFields(TRUNK_FIELDS, demand.values);
+  const galho = expandFields(effectiveTypeFields(demand), demand.values);
 
   // Agrupa tipos por categoria para o select.
   const categories = Array.from(new Set(DEMAND_TYPES.map((t) => t.category)));
@@ -80,7 +82,7 @@ export function DemandForm({ demand, onSetType, onSetValue, missingIds }: Props)
         <legend className="mb-2" style={sectionLegendStyle}>
           Informações gerais
         </legend>
-        {TRUNK_FIELDS.map((f) => (
+        {trunk.map((f) => (
           <div key={f.id} className={f.type === "textarea" ? "md:col-span-2" : ""}>
             <FieldRenderer
               field={f}

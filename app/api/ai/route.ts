@@ -144,6 +144,8 @@ async function aiPropose(client: OpenAI, freeText: string): Promise<ProposeResul
     "Cada campo tem: id (snake_case), label (curto, pt-BR), type (um de: text, textarea,",
     "select, number, date), required (boolean), placeholder (um exemplo curto) e, só para",
     "type=select, options (lista de strings). Entre 3 e 8 campos, do essencial ao útil.",
+    "Um campo select PODE ter 'reveal': um objeto { \"valor_da_opcao\": [campos extras] } que",
+    "abre campos condicionais quando aquela opção é escolhida (use com moderação, aninhamento raso).",
     "NÃO repita cliente, prazo, prioridade, objetivo ou público (esses já existem no formulário).",
     'Responda SOMENTE JSON: {"label": "resumo curto da demanda", "fields": [ {campo}, ... ]}',
     "",

@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { normalizeCustomFields, mockPropose } from "@/lib/ai-core";
 import { validateRequired } from "@/lib/validate";
 import { generateDemandText } from "@/lib/generate-text";
-import { effectiveTypeFields, type DemandData } from "@/lib/demand-map";
+import { effectiveTypeFields, type DemandData, type FieldDef } from "@/lib/demand-map";
 
 describe("normalizeCustomFields", () => {
   it("sanitiza entradas válidas e ignora as inválidas", () => {
@@ -89,5 +89,57 @@ describe("customFields no formulário/validação/texto", () => {
     const text = generateDemandText(demand);
     expect(text).toContain("Medidas: 50 x 180 cm");
     expect(text).toContain("Descrição da demanda: Um totem de madeira");
+  });
+});
+
+describe("normalizeCustomFields — robustez (pós-review)", () => {
+  it("select sem opções válidas vira campo de texto", () => {
+    const [f] = normalizeCustomFields([{ label: "Cor", type: "select", required: true }]);
+    expect(f.type).toBe("text");
+    expect(f.options).toBeUndefined();
+  });
+
+  it("garante ids únicos entre níveis de reveal", () => {
+    const [f] = normalizeCustomFields([
+      {
+        id: "cor", label: "Cor", type: "select", options: ["Sim"],
+        reveal: { Sim: [{ id: "cor", label: "Qual cor", type: "text" }] },
+      },
+    ]);
+    expect(f.id).toBe("cor");
+    expect(f.reveal?.Sim?.[0].id).not.toBe("cor");
+  });
+
+  it("impõe um teto GLOBAL de campos mesmo com reveal aninhado", () => {
+    const raw = Array.from({ length: 30 }, (_, i) => ({
+      label: `Sel ${i}`, type: "select", options: ["a"],
+      reveal: { a: Array.from({ length: 10 }, (_, j) => ({ label: `sub ${i}-${j}`, type: "text" })) },
+    }));
+    let total = 0;
+    const count = (fs: FieldDef[]) =>
+      fs.forEach((f) => {
+        total++;
+        if (f.reveal) Object.values(f.reveal).forEach(count);
+      });
+    count(normalizeCustomFields(raw));
+    expect(total).toBeLessThanOrEqual(40);
+  });
+});
+
+describe("effectiveTypeFields — dedup base × custom (pós-review)", () => {
+  it("descarta campo da IA que colide com id do tronco ou do tipo", () => {
+    const demand: DemandData = {
+      typeId: "outros",
+      values: {},
+      customFields: [
+        { id: "descricao_livre", label: "Colide com estático", type: "text", required: false },
+        { id: "cliente", label: "Colide com tronco", type: "text", required: false },
+        { id: "unico", label: "Campo novo", type: "text", required: false },
+      ],
+    };
+    const ids = effectiveTypeFields(demand).map((f) => f.id);
+    expect(ids.filter((id) => id === "descricao_livre")).toHaveLength(1); // só o estático
+    expect(ids).not.toContain("cliente"); // colisão com tronco removida
+    expect(ids).toContain("unico");
   });
 });

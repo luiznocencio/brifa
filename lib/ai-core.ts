@@ -34,31 +34,54 @@ function slugId(label: string, index: number): string {
   return base || `campo_${index + 1}`;
 }
 
+const MAX_REVEAL_DEPTH = 3;
+const MAX_TOTAL_FIELDS = 40;
+
 // Sanitiza a lista de campos vinda da IA (ou de qualquer origem não confiável)
-// para FieldDefs válidos, com ids únicos e um teto de quantidade.
-export function normalizeCustomFields(raw: unknown): FieldDef[] {
-  if (!Array.isArray(raw)) return [];
-  const seen = new Set<string>();
+// para FieldDefs válidos, com ids únicos, teto de quantidade e condicionais
+// (reveal) recursivos com guarda de profundidade.
+export function normalizeCustomFields(
+  raw: unknown,
+  depth = 0,
+  // `seen` é compartilhado por toda a recursão de reveal: garante ids únicos
+  // entre TODOS os níveis e também impõe o teto GLOBAL de campos.
+  seen: Set<string> = new Set(),
+): FieldDef[] {
+  if (depth > MAX_REVEAL_DEPTH || !Array.isArray(raw)) return [];
   const out: FieldDef[] = [];
-  for (let i = 0; i < raw.length && out.length < MAX_CUSTOM_FIELDS; i++) {
+  for (let i = 0; i < raw.length && out.length < MAX_CUSTOM_FIELDS && seen.size < MAX_TOTAL_FIELDS; i++) {
     const item = raw[i];
     if (!item || typeof item !== "object") continue;
     const rec = item as Record<string, unknown>;
     const label = typeof rec.label === "string" ? rec.label.trim() : "";
     if (!label) continue;
-    const type = VALID_FIELD_TYPES.includes(rec.type as FieldType)
+    let type: FieldType = VALID_FIELD_TYPES.includes(rec.type as FieldType)
       ? (rec.type as FieldType)
       : "text";
-    let id = typeof rec.id === "string" && rec.id.trim() ? slugId(rec.id, i) : slugId(label, i);
-    while (seen.has(id)) id = `${id}_${i}`;
+    const baseId = typeof rec.id === "string" && rec.id.trim() ? slugId(rec.id, i) : slugId(label, i);
+    let id = baseId;
+    let n = 1;
+    while (seen.has(id)) id = `${baseId}_${n++}`;
     seen.add(id);
+    // Um select só é útil com opções; sem opções válidas vira campo de texto.
+    let options: string[] | undefined;
+    if (type === "select" && Array.isArray(rec.options)) {
+      const opts = rec.options.filter((o): o is string => typeof o === "string" && o.trim() !== "");
+      if (opts.length > 0) options = opts;
+    }
+    if (type === "select" && !options) type = "text";
     const field: FieldDef = { id, label, type, required: Boolean(rec.required) };
+    if (options) field.options = options;
     if (typeof rec.placeholder === "string" && rec.placeholder.trim()) {
       field.placeholder = rec.placeholder.trim();
     }
-    if (type === "select" && Array.isArray(rec.options)) {
-      const options = rec.options.filter((o): o is string => typeof o === "string" && o.trim() !== "");
-      if (options.length > 0) field.options = options;
+    if (rec.reveal && typeof rec.reveal === "object" && !Array.isArray(rec.reveal)) {
+      const reveal: Record<string, FieldDef[]> = {};
+      for (const [key, sub] of Object.entries(rec.reveal as Record<string, unknown>)) {
+        const subFields = normalizeCustomFields(sub, depth + 1, seen);
+        if (subFields.length > 0) reveal[key] = subFields;
+      }
+      if (Object.keys(reveal).length > 0) field.reveal = reveal;
     }
     out.push(field);
   }
@@ -73,6 +96,14 @@ export function mockPropose(freeText: string): ProposeResult {
     { id: "dimensoes_ou_formato", label: "Dimensões / Formato", type: "text", required: false, placeholder: "Ex.: 100 x 50 cm, A4, 1080x1080 px" },
     { id: "quantidade", label: "Quantidade", type: "number", required: false, placeholder: "Ex.: 1" },
     { id: "material_ou_suporte", label: "Material / Suporte", type: "text", required: false, placeholder: "Ex.: papel, vinil, lona, digital" },
+    {
+      id: "acabamento_especial", label: "Tem acabamento especial?", type: "select", required: false, options: ["Sim", "Não"],
+      reveal: {
+        Sim: [
+          { id: "qual_acabamento", label: "Qual acabamento", type: "text", required: false, placeholder: "Ex.: verniz, laminação, recorte especial" },
+        ],
+      },
+    },
     { id: "referencias", label: "Referências", type: "textarea", required: false, placeholder: "Ex.: links ou exemplos do que se espera" },
   ];
   const label = freeText.trim() ? freeText.trim().slice(0, 60) : "Demanda personalizada";

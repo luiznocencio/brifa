@@ -7,6 +7,9 @@ export interface FieldDef {
   required: boolean;
   options?: string[];
   placeholder?: string;
+  // Campos condicionais: quando este campo (select) tem o valor da chave,
+  // os campos correspondentes são revelados logo abaixo (cascata).
+  reveal?: Record<string, FieldDef[]>;
 }
 
 export interface DemandTypeDef {
@@ -83,7 +86,15 @@ export const DEMAND_TYPES: DemandTypeDef[] = [
     fields: [
       { id: "duracao", label: "Duração estimada", type: "text", required: true, placeholder: "Ex.: 60s a 90s" },
       { id: "proporcao", label: "Proporção", type: "select", required: true, options: ["16:9", "9:16", "1:1"] },
-      { id: "locucao", label: "Locução", type: "select", required: false, options: ["Sim", "Não"] },
+      {
+        id: "locucao", label: "Locução", type: "select", required: false, options: ["Sim", "Não"],
+        reveal: {
+          Sim: [
+            { id: "idioma_locucao", label: "Idioma da locução", type: "text", required: false, placeholder: "Ex.: Português BR" },
+            { id: "roteiro_locucao", label: "Roteiro / texto da locução", type: "textarea", required: false, placeholder: "Ex.: cole o texto a ser narrado" },
+          ],
+        },
+      },
       { id: "trilha", label: "Trilha", type: "text", required: false, placeholder: "Ex.: Trilha licenciada (ou a definir)" },
       { id: "entregaveis", label: "Entregáveis", type: "textarea", required: false, placeholder: "Ex.: 1 vídeo master 16:9 + cortes 9:16" },
       { id: "referencias", label: "Referências", type: "textarea", required: false, placeholder: "Ex.: Links de referência de estilo" },
@@ -122,7 +133,28 @@ export const DEMAND_TYPES: DemandTypeDef[] = [
   {
     id: "web-digital", category: "Web / Digital", label: "Landing page / Site / E-mail / Ads",
     fields: [
-      { id: "subtipo", label: "Subtipo", type: "select", required: true, options: ["Landing page", "Site", "E-mail marketing", "Banner / Ads"] },
+      {
+        id: "subtipo", label: "Subtipo", type: "select", required: true,
+        options: ["Landing page", "Site", "E-mail marketing", "Banner / Ads"],
+        reveal: {
+          "Landing page": [
+            { id: "secoes", label: "Seções da página", type: "textarea", required: false, placeholder: "Ex.: Hero, benefícios, prova social, CTA" },
+            { id: "integracao", label: "Integração / captura", type: "text", required: false, placeholder: "Ex.: RD Station, formulário, WhatsApp" },
+          ],
+          Site: [
+            { id: "num_paginas", label: "Nº de páginas", type: "number", required: false, placeholder: "Ex.: 5" },
+            { id: "cms", label: "Plataforma / CMS", type: "text", required: false, placeholder: "Ex.: WordPress, Webflow" },
+          ],
+          "E-mail marketing": [
+            { id: "assunto", label: "Assunto do e-mail", type: "text", required: false, placeholder: "Ex.: Novidades da semana" },
+            { id: "lista_envio", label: "Lista de envio", type: "text", required: false, placeholder: "Ex.: base de clientes ativos" },
+          ],
+          "Banner / Ads": [
+            { id: "plataforma_ads", label: "Plataforma", type: "text", required: false, placeholder: "Ex.: Google Ads, Meta Ads" },
+            { id: "tamanhos_ads", label: "Tamanhos / formatos", type: "text", required: false, placeholder: "Ex.: 1080x1080, 300x250, 728x90" },
+          ],
+        },
+      },
       { id: "dimensoes", label: "Dimensões / Breakpoints", type: "text", required: false, placeholder: "Ex.: 1440px desktop / 375px mobile" },
       { id: "veiculacao", label: "Veiculação", type: "text", required: false, placeholder: "Ex.: Google Ads, Meta Ads" },
       { id: "links", label: "Links / Referências", type: "textarea", required: false, placeholder: "Ex.: Link do briefing, referências" },
@@ -144,7 +176,15 @@ export const DEMAND_TYPES: DemandTypeDef[] = [
   ]),
   offlineType("offline-eventos", "Eventos / Ativações", [
     { id: "dimensoes_espaco", label: "Dimensões do espaço", type: "text", required: false, placeholder: "Ex.: Estande 3x3 m, pé-direito 2,5 m" },
-    { id: "montagem", label: "Montagem inclusa?", type: "select", required: false, options: ["Sim", "Não"] },
+    {
+      id: "montagem", label: "Montagem inclusa?", type: "select", required: false, options: ["Sim", "Não"],
+      reveal: {
+        Sim: [
+          { id: "data_montagem", label: "Data / horário da montagem", type: "text", required: false, placeholder: "Ex.: 04/09 a partir das 8h" },
+          { id: "responsavel_montagem", label: "Responsável pela montagem", type: "text", required: false, placeholder: "Ex.: fornecedor X / equipe interna" },
+        ],
+      },
+    },
   ]),
   offlineType("offline-grande-formato", "Grandes formatos"),
   offlineType("offline-brindes", "Brindes / Merchandising", [
@@ -176,12 +216,37 @@ export function effectiveTypeFields(demand: DemandData): FieldDef[] {
   const t = getTypeById(demand.typeId);
   const base = t ? t.fields : [];
   if (demand.customFields && demand.customFields.length > 0) {
-    return [...base, ...demand.customFields];
+    // Descarta campos da IA cujo id colida com o tronco ou com os campos
+    // estáticos do tipo, evitando ids/keys duplicados após a composição.
+    const reserved = new Set<string>([
+      ...TRUNK_FIELDS.map((f) => f.id),
+      ...base.map((f) => f.id),
+    ]);
+    const extra = demand.customFields.filter((f) => !reserved.has(f.id));
+    return [...base, ...extra];
   }
   return base;
 }
 
-// Tronco + campos técnicos efetivos (considera customFields da IA).
+// Expande a lista revelando os campos condicionais conforme os valores atuais.
+// Um campo com `reveal` insere, logo após ele, os campos da opção selecionada
+// (recursivamente — campos revelados também podem revelar outros).
+export function expandFields(fields: FieldDef[], values: Record<string, string>): FieldDef[] {
+  const out: FieldDef[] = [];
+  for (const f of fields) {
+    out.push(f);
+    if (f.reveal) {
+      const revealed = f.reveal[values[f.id] ?? ""];
+      if (revealed && revealed.length > 0) {
+        out.push(...expandFields(revealed, values));
+      }
+    }
+  }
+  return out;
+}
+
+// Tronco + campos técnicos efetivos, já expandidos pelos condicionais ativos.
+// (considera customFields da IA e o mecanismo de reveal em cascata.)
 export function getFieldsForDemand(demand: DemandData): FieldDef[] {
-  return [...TRUNK_FIELDS, ...effectiveTypeFields(demand)];
+  return expandFields([...TRUNK_FIELDS, ...effectiveTypeFields(demand)], demand.values);
 }

@@ -1,5 +1,5 @@
 import type { DemandData } from "@/lib/demand-map";
-import type { InterpretResult, ReviewResult, RedactResult } from "@/lib/ai-core";
+import type { InterpretResult, ReviewResult, RedactResult, ProposeResult } from "@/lib/ai-core";
 import { generateDemandText } from "@/lib/generate-text";
 
 async function post<T>(body: unknown): Promise<T> {
@@ -26,5 +26,21 @@ export async function aiRedact(demand: DemandData): Promise<RedactResult> {
   } catch {
     // Nunca trava por IA: gera localmente.
     return { text: generateDemandText(demand) };
+  }
+}
+
+export async function aiPropose(freeText: string): Promise<ProposeResult> {
+  try {
+    return await post<ProposeResult>({ action: "propose", freeText });
+  } catch {
+    // Fallback local: um conjunto mínimo de campos técnicos, pra nunca travar.
+    return {
+      label: freeText.trim().slice(0, 60) || "Demanda personalizada",
+      fields: [
+        { id: "descricao_detalhada", label: "Descrição detalhada", type: "textarea", required: true, placeholder: "Ex.: o que é, para que serve e o contexto" },
+        { id: "dimensoes_ou_formato", label: "Dimensões / Formato", type: "text", required: false, placeholder: "Ex.: 100 x 50 cm, A4" },
+        { id: "quantidade", label: "Quantidade", type: "number", required: false, placeholder: "Ex.: 1" },
+      ],
+    };
   }
 }

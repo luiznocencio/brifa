@@ -1,5 +1,5 @@
 "use client";
-import { TRUNK_FIELDS, DEMAND_TYPES, getTypeById, type DemandData } from "@/lib/demand-map";
+import { TRUNK_FIELDS, DEMAND_TYPES, effectiveTypeFields, type DemandData } from "@/lib/demand-map";
 import { FieldRenderer } from "@/components/FieldRenderer";
 
 interface Props {
@@ -19,8 +19,7 @@ const sectionLegendStyle = {
 };
 
 export function DemandForm({ demand, onSetType, onSetValue, missingIds }: Props) {
-  const type = getTypeById(demand.typeId);
-  const galho = type ? type.fields : [];
+  const galho = effectiveTypeFields(demand);
 
   // Agrupa tipos por categoria para o select.
   const categories = Array.from(new Set(DEMAND_TYPES.map((t) => t.category)));

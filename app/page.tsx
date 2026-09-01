@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useDemand } from "@/lib/useDemand";
 import { DemandForm } from "@/components/DemandForm";
 import { FreeTextIntake } from "@/components/FreeTextIntake";
+import { CustomFieldsBuilder } from "@/components/CustomFieldsBuilder";
 import { GapReview } from "@/components/GapReview";
 import { OutputPreview } from "@/components/OutputPreview";
 import { validateRequired } from "@/lib/validate";
@@ -12,7 +13,7 @@ import type { InterpretResult } from "@/lib/ai-core";
 import { Button } from "@/components/ui/Button";
 
 export default function Page() {
-  const { demand, setType, setValue, setAll, reset } = useDemand();
+  const { demand, setType, setValue, setCustomFields, setAll, reset } = useDemand();
   const [gaps, setGaps] = useState<string[]>([]);
   const [missingIds, setMissingIds] = useState<string[]>([]);
   const [output, setOutput] = useState<string>("");
@@ -90,6 +91,13 @@ export default function Page() {
 
       <FreeTextIntake onInterpreted={handleInterpreted} />
       <DemandForm demand={demand} onSetType={setType} onSetValue={setValue} missingIds={missingIds} />
+      {demand.typeId === "outros" && (
+        <CustomFieldsBuilder
+          description={demand.values.descricao_livre ?? ""}
+          hasFields={Boolean(demand.customFields && demand.customFields.length > 0)}
+          onProposed={setCustomFields}
+        />
+      )}
       <GapReview gaps={gaps} />
 
       <div className="flex gap-3">

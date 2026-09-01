@@ -5,8 +5,11 @@ import {
   mockInterpret,
   mockReview,
   mockRedact,
+  mockPropose,
+  normalizeCustomFields,
   classifyByKeywords,
   type InterpretResult,
+  type ProposeResult,
 } from "@/lib/ai-core";
 import { generateDemandText } from "@/lib/generate-text";
 import { DEMAND_TYPES, getFieldsForType, type DemandData } from "@/lib/demand-map";
@@ -14,7 +17,7 @@ import { DEMAND_TYPES, getFieldsForType, type DemandData } from "@/lib/demand-ma
 export const runtime = "nodejs";
 
 interface Body {
-  action: "interpret" | "review" | "redact";
+  action: "interpret" | "review" | "redact" | "propose";
   freeText?: string;
   demand?: DemandData;
 }
@@ -29,7 +32,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  if (!["interpret", "review", "redact"].includes(body.action)) {
+  if (!["interpret", "review", "redact", "propose"].includes(body.action)) {
     return NextResponse.json({ error: "ação desconhecida" }, { status: 400 });
   }
 
@@ -50,6 +53,9 @@ export async function POST(req: Request) {
     if (body.action === "redact") {
       return NextResponse.json(await aiRedact(client, body.demand ?? emptyDemand()));
     }
+    if (body.action === "propose") {
+      return NextResponse.json(await aiPropose(client, body.freeText ?? ""));
+    }
     return NextResponse.json({ error: "ação desconhecida" }, { status: 400 });
   } catch {
     // Qualquer falha da IA cai no mock — a ferramenta nunca trava.
@@ -64,6 +70,7 @@ function emptyDemand(): DemandData {
 function runMock(body: Body) {
   if (body.action === "interpret") return mockInterpret(body.freeText ?? "");
   if (body.action === "review") return mockReview(body.demand ?? emptyDemand());
+  if (body.action === "propose") return mockPropose(body.freeText ?? "");
   return mockRedact(body.demand ?? emptyDemand());
 }
 
@@ -128,4 +135,35 @@ async function aiRedact(client: OpenAI, demand: DemandData): Promise<{ text: str
   });
   const text = res.choices[0]?.message?.content?.trim();
   return { text: text && text.startsWith("SOLICITACAO") ? text : base };
+}
+
+async function aiPropose(client: OpenAI, freeText: string): Promise<ProposeResult> {
+  const prompt = [
+    "Um atendente descreveu uma demanda que NÃO está no catálogo padrão de uma agência.",
+    "Proponha os campos TÉCNICOS mínimos que a produção precisa para executá-la bem.",
+    "Cada campo tem: id (snake_case), label (curto, pt-BR), type (um de: text, textarea,",
+    "select, number, date), required (boolean), placeholder (um exemplo curto) e, só para",
+    "type=select, options (lista de strings). Entre 3 e 8 campos, do essencial ao útil.",
+    "NÃO repita cliente, prazo, prioridade, objetivo ou público (esses já existem no formulário).",
+    'Responda SOMENTE JSON: {"label": "resumo curto da demanda", "fields": [ {campo}, ... ]}',
+    "",
+    `Demanda: ${freeText}`,
+  ].join("\n");
+
+  const res = await client.chat.completions.create({
+    model: MODEL,
+    messages: [{ role: "user", content: prompt }],
+    response_format: { type: "json_object" },
+    temperature: 0.2,
+  });
+
+  const raw = res.choices[0]?.message?.content ?? "{}";
+  try {
+    const parsed = JSON.parse(raw) as { label?: string; fields?: unknown };
+    const fields = normalizeCustomFields(parsed.fields);
+    if (fields.length === 0) return mockPropose(freeText);
+    return { label: typeof parsed.label === "string" ? parsed.label : undefined, fields };
+  } catch {
+    return mockPropose(freeText);
+  }
 }

@@ -19,6 +19,9 @@ export interface DemandTypeDef {
 export interface DemandData {
   typeId: string;
   values: Record<string, string>;
+  // Campos técnicos gerados pela IA para uma demanda não listada ("Outro").
+  // Quando presentes, complementam os campos estáticos do tipo.
+  customFields?: FieldDef[];
 }
 
 export const TRUNK_FIELDS: FieldDef[] = [
@@ -165,4 +168,20 @@ export function getTypeById(id: string): DemandTypeDef | undefined {
 export function getFieldsForType(typeId: string): FieldDef[] {
   const t = getTypeById(typeId);
   return [...TRUNK_FIELDS, ...(t ? t.fields : [])];
+}
+
+// Campos técnicos efetivos de uma demanda: os estáticos do tipo escolhido,
+// acrescidos dos campos gerados pela IA (customFields), quando houver.
+export function effectiveTypeFields(demand: DemandData): FieldDef[] {
+  const t = getTypeById(demand.typeId);
+  const base = t ? t.fields : [];
+  if (demand.customFields && demand.customFields.length > 0) {
+    return [...base, ...demand.customFields];
+  }
+  return base;
+}
+
+// Tronco + campos técnicos efetivos (considera customFields da IA).
+export function getFieldsForDemand(demand: DemandData): FieldDef[] {
+  return [...TRUNK_FIELDS, ...effectiveTypeFields(demand)];
 }

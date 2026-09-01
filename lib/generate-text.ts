@@ -21,7 +21,6 @@ export function generateDemandText(demand: DemandData): string {
     "SOLICITACAO DE DEMANDA",
     "",
     line(labelOf("cliente"), val(demand, "cliente")),
-    `${line(labelOf("solicitante"), val(demand, "solicitante"))}`,
     `Tipo: ${typeLabel}`,
     `${line(labelOf("prioridade"), val(demand, "prioridade"))}    ${line(labelOf("prazo"), val(demand, "prazo"))}`,
   ].join("\n");
@@ -38,7 +37,5 @@ export function generateDemandText(demand: DemandData): string {
     line(labelOf("observacoes"), val(demand, "observacoes")),
   ].join("\n");
 
-  const aprovacao = ["APROVACAO", line(labelOf("aprovador"), val(demand, "aprovador"))].join("\n");
-
-  return [header, "", objetivo, "", spec, "", publico, "", aprovacao].join("\n");
+  return [header, "", objetivo, "", spec, "", publico].join("\n");
 }

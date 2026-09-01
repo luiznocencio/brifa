@@ -6,12 +6,10 @@ const offline: DemandData = {
   typeId: "offline-sinalizacao",
   values: {
     cliente: "Loja X — Inauguração",
-    solicitante: "Ana",
     objetivo: "Comunicar a nova loja na fachada",
     publico: "Clientes do bairro",
     prazo: "2026-09-05",
     prioridade: "Alta",
-    aprovador: "Carlos",
     medida_real: "200 x 90 cm",
     material: "Lona",
     quantidade: "1",
@@ -35,11 +33,14 @@ describe("generateDemandText", () => {
     const iObj = text.indexOf("OBJETIVO");
     const iSpec = text.indexOf("ESPECIFICACAO TECNICA");
     const iPub = text.indexOf("PUBLICO / OBSERVACOES");
-    const iAprov = text.indexOf("APROVACAO");
     expect(iObj).toBeGreaterThan(-1);
     expect(iSpec).toBeGreaterThan(iObj);
     expect(iPub).toBeGreaterThan(iSpec);
-    expect(iAprov).toBeGreaterThan(iPub);
+  });
+
+  it("não inclui mais o bloco APROVACAO (campo removido)", () => {
+    const text = generateDemandText(offline);
+    expect(text).not.toContain("APROVACAO");
   });
 
   it("renderiza campos técnicos do galho com seus rótulos", () => {
@@ -70,14 +71,12 @@ describe("generateDemandText", () => {
       typeId: "offline-sinalizacao",
       values: {
         cliente: "Loja X — Inauguração",
-        solicitante: "Ana",
-        objetivo: "Comunicar a nova loja na fachada",
+            objetivo: "Comunicar a nova loja na fachada",
         publico: "Clientes do bairro",
         observacoes: "Cuidado com a cor da marca",
         prazo: "2026-09-05",
         prioridade: "Alta",
-        aprovador: "Carlos",
-        medida_real: "200 x 90 cm",
+            medida_real: "200 x 90 cm",
         material: "Lona",
         quantidade: "1",
         aplicacao_local: "Fachada da loja nova",
@@ -92,13 +91,11 @@ describe("generateDemandText", () => {
       typeId: "offline-sinalizacao",
       values: {
         cliente: "Loja X — Inauguração",
-        solicitante: "Ana",
-        objetivo: "Comunicar a nova loja na fachada",
+            objetivo: "Comunicar a nova loja na fachada",
         publico: "Clientes do bairro",
         prazo: "2026-09-05",
         prioridade: "Alta",
-        aprovador: "Carlos",
-        medida_real: "200 x 90 cm",
+            medida_real: "200 x 90 cm",
         material: "Lona",
         quantidade: "1",
         aplicacao_local: "Fachada da loja nova",

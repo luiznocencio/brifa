@@ -9,14 +9,16 @@ import {
 describe("mapa técnico", () => {
   it("tronco comum tem os campos-chave obrigatórios", () => {
     const ids = TRUNK_FIELDS.map((f) => f.id);
-    for (const id of ["cliente", "solicitante", "objetivo", "prazo", "prioridade"]) {
+    for (const id of ["cliente", "objetivo", "prazo", "prioridade"]) {
       const f = TRUNK_FIELDS.find((x) => x.id === id);
       expect(f, `campo ${id} existe`).toBeTruthy();
       expect(f!.required, `campo ${id} é obrigatório`).toBe(true);
     }
-    expect(ids).toContain("aprovador");
     expect(ids).toContain("publico");
     expect(ids).toContain("observacoes");
+    // solicitante e aprovador foram removidos do tronco
+    expect(ids).not.toContain("solicitante");
+    expect(ids).not.toContain("aprovador");
   });
 
   it("inclui os 6 subtipos de produções offline", () => {

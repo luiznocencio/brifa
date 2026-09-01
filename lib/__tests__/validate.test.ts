@@ -8,7 +8,6 @@ describe("validateRequired", () => {
     const missing = validateRequired(demand).map((f) => f.id);
     // tronco obrigatórios
     expect(missing).toContain("cliente");
-    expect(missing).toContain("solicitante");
     expect(missing).toContain("objetivo");
     expect(missing).toContain("prazo");
     expect(missing).toContain("prioridade");
@@ -22,7 +21,7 @@ describe("validateRequired", () => {
     const demand: DemandData = { typeId: "offline-sinalizacao", values: {} };
     const missing = validateRequired(demand).map((f) => f.id);
     expect(missing).not.toContain("publico");
-    expect(missing).not.toContain("aprovador");
+    expect(missing).not.toContain("observacoes");
     expect(missing).not.toContain("acabamento");
   });
 
@@ -40,7 +39,6 @@ describe("validateRequired", () => {
       typeId: "outros",
       values: {
         cliente: "Loja X",
-        solicitante: "Ana",
         objetivo: "Divulgar inauguração",
         prazo: "2026-09-05",
         prioridade: "Alta",

@@ -22,6 +22,9 @@ export default function Page() {
   useEffect(() => {
     const draft = loadDraft();
     if (draft) setAll(draft);
+    // Restauração pós-mount é intencional (evita mismatch de hidratação SSR):
+    // renderiza vazio no servidor/primeiro paint e só então aplica o rascunho.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRestored(true);
   }, [setAll]);
 

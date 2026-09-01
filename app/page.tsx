@@ -1,69 +1,100 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useState } from "react";
+import { useDemand } from "@/lib/useDemand";
+import { DemandForm } from "@/components/DemandForm";
+import { FreeTextIntake } from "@/components/FreeTextIntake";
+import { GapReview } from "@/components/GapReview";
+import { OutputPreview } from "@/components/OutputPreview";
+import { validateRequired } from "@/lib/validate";
+import { aiRedact } from "@/lib/ai-client";
+import { saveDraft, loadDraft, clearDraft } from "@/lib/draft";
+import type { InterpretResult } from "@/lib/ai-core";
 
-export default function Home() {
+export default function Page() {
+  const { demand, setType, setValue, setAll, reset } = useDemand();
+  const [gaps, setGaps] = useState<string[]>([]);
+  const [missingIds, setMissingIds] = useState<string[]>([]);
+  const [output, setOutput] = useState<string>("");
+  const [generating, setGenerating] = useState(false);
+  const [restored, setRestored] = useState(false);
+
+  // Restaura rascunho ao montar.
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft) setAll(draft);
+    setRestored(true);
+  }, [setAll]);
+
+  // Autosave (só depois de restaurar, pra não sobrescrever com vazio).
+  useEffect(() => {
+    if (restored && demand.typeId) saveDraft(demand);
+  }, [demand, restored]);
+
+  function handleInterpreted(result: InterpretResult) {
+    setAll({ typeId: result.typeId, values: { ...demand.values, ...result.values } });
+  }
+
+  async function handleGenerate() {
+    const missing = validateRequired(demand);
+    setMissingIds(missing.map((f) => f.id));
+    setGaps(missing.map((f) => `Falta preencher: ${f.label}.`));
+    if (missing.length > 0) {
+      setOutput("");
+      return;
+    }
+    setGenerating(true);
+    try {
+      const { text } = await aiRedact(demand);
+      setOutput(text);
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  function handleCopy() {
+    navigator.clipboard?.writeText(output);
+  }
+
+  function handleReset() {
+    reset();
+    clearDraft();
+    setGaps([]);
+    setMissingIds([]);
+    setOutput("");
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className="mx-auto flex max-w-3xl flex-col gap-6 p-6">
+      <header>
+        <h1 className="text-xl font-bold text-gray-900">Pauta de Demandas</h1>
+        <p className="text-sm text-gray-500">
+          Descreva ou preencha a demanda; a ferramenta monta o texto técnico pra gestão.
+        </p>
+      </header>
+
+      <FreeTextIntake onInterpreted={handleInterpreted} />
+      <DemandForm demand={demand} onSetType={setType} onSetValue={setValue} missingIds={missingIds} />
+      <GapReview gaps={gaps} />
+
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={handleGenerate}
+          disabled={generating || !demand.typeId}
+          className="rounded-md bg-blue-600 px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
+        >
+          {generating ? "Gerando…" : "Gerar texto"}
+        </button>
+        <button
+          type="button"
+          onClick={handleReset}
+          className="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700"
+        >
+          Limpar
+        </button>
+      </div>
+
+      {output && <OutputPreview text={output} onCopy={handleCopy} />}
+    </main>
   );
 }

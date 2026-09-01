@@ -36,7 +36,7 @@ essencial (A, B, D, E).
 | Abordagem de UX | **Formulário inteligente (form-first)** com IA em 3 momentos |
 | Destino do output | Texto padronizado, copiar/colar → gestora → iClips |
 | Plataforma | Web app, desktop, acesso por link |
-| Persistência | **Nenhuma** — sem banco, sem login |
+| Persistência | Sem banco, sem login. **Rascunho local** (localStorage) na v1 |
 | IA | API do GPT, via função serverless (chave protegida) |
 | Formato do texto | Padronizado (não espelha iClips por ora) + **texto puro** |
 | Direção visual | `design-taste-frontend` + design system do usuário (Claude Design) |
@@ -70,9 +70,10 @@ Função serverless (Vercel)
 
 - **Sem banco de dados, sem login.** A pauta vive na tela até virar texto.
 - **Uma única função serverless** protege a chave da API; o navegador nunca a vê.
-- **Rascunho local (opcional):** autosave no `localStorage` como rede de
-  segurança contra fechar a aba sem querer. Não é persistência de produto — é
-  conveniência por sessão. A definir com o usuário se entra na v1.
+- **Rascunho local (v1):** autosave no `localStorage` como rede de segurança
+  contra fechar a aba sem querer. Não é persistência de produto — é conveniência
+  por sessão, privada ao navegador do atendente. Restaura o que estava sendo
+  digitado ao reabrir; é limpo quando a pauta é gerada/descartada.
 
 ## Modelo de dados do formulário
 

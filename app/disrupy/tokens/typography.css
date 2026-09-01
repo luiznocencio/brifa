@@ -1,0 +1,63 @@
+/* Disrupy — Typography tokens
+   Families: Bw Gradual (display/headings) · Poppins (body/UI/data).
+   The source Figma used Space Grotesk / Inter / Roboto as stand-ins;
+   the brand's real supplied faces are Bw Gradual + Poppins, mapped here.
+   Sizes are the real values observed across the file
+   (130 / 72 / 70 / 32 / 28 / 24.5 / 24 / 20 / 16 / 13 / 12 / 10 / 8). */
+
+:root {
+  /* Families */
+  --font-display: "Bw Gradual", "Poppins", system-ui, sans-serif; /* @kind font */
+  --font-body: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; /* @kind font */
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; /* @kind font */
+
+  /* Weights */
+  --fw-light: 300; /* @kind font */
+  --fw-regular: 400; /* @kind font */
+  --fw-medium: 500; /* @kind font */
+  --fw-semibold: 600; /* @kind font */
+  --fw-bold: 700; /* @kind font */
+  --fw-extrabold: 800; /* @kind font */
+  --fw-black: 900; /* @kind font */
+
+  /* Type scale — font-size / line-height */
+  --text-display-2xl: 130px; /* @kind font */
+  --lh-display-2xl: 1.0; /* @kind font */
+  --text-display-xl: 72px; /* @kind font */
+  --lh-display-xl: 1.02; /* @kind font */
+  --text-display-lg: 70px; /* @kind font */
+  --lh-display-lg: 1.04; /* @kind font */
+  --text-display-md: 48px; /* @kind font */
+  --lh-display-md: 1.06; /* @kind font */
+
+  --text-title-xl: 32px; /* @kind font */
+  --lh-title-xl: 1.12; /* @kind font */
+  --text-title-lg: 28px; /* @kind font */
+  --lh-title-lg: 1.15; /* @kind font */
+  --text-title-md: 24.5px; /* @kind font */
+  --lh-title-md: 1.2; /* @kind font */
+  --text-title-sm: 20px; /* @kind font */
+  --lh-title-sm: 1.25; /* @kind font */
+
+  --text-body-lg: 18px; /* @kind font */
+  --lh-body-lg: 1.5; /* @kind font */
+  --text-body-md: 16px; /* @kind font */
+  --lh-body-md: 1.5; /* @kind font */
+  --text-body-sm: 14px; /* @kind font */
+  --lh-body-sm: 1.45; /* @kind font */
+
+  --text-label-md: 13px; /* @kind font */
+  --lh-label-md: 1.0; /* @kind font */
+  --text-label-sm: 12px; /* @kind font */
+  --lh-label-sm: 1.0; /* @kind font */
+  --text-label-xs: 10px; /* @kind font */
+  --lh-label-xs: 1.0; /* @kind font */
+  --text-label-2xs: 8px; /* @kind font */
+  --lh-label-2xs: 1.0; /* @kind font */
+
+  /* Letter-spacing */
+  --tracking-tight: -0.02em;   /* display */
+  --tracking-normal: 0em; /* @kind other */
+  --tracking-wide: 0.04em; /* @kind other */
+  --tracking-caps: 0.08em;     /* all-caps labels */
+}

@@ -1,0 +1,98 @@
+/* Disrupy — Spacing, radius, elevation, motion, layout, sizing, z-index
+   Spacing scale = the file's float tokens (verbatim names & values):
+   quark 4 · nano 2 · xsmall 8 · small 12 · medium 16 · large 18
+   xlarge 20 · xxlarge 24 · hairline 1 — extended upward for layout. */
+
+:root {
+  /* ---------- Spacing ---------- */
+  --space-hairline: 1px; /* @kind spacing */
+  --space-nano: 2px; /* @kind spacing */
+  --space-quark: 4px; /* @kind spacing */
+  --space-xsmall: 8px; /* @kind spacing */
+  --space-small: 12px; /* @kind spacing */
+  --space-medium: 16px; /* @kind spacing */
+  --space-large: 18px; /* @kind spacing */
+  --space-xlarge: 20px; /* @kind spacing */
+  --space-xxlarge: 24px; /* @kind spacing */
+  --space-3xl: 32px; /* @kind spacing */
+  --space-4xl: 40px; /* @kind spacing */
+  --space-5xl: 48px; /* @kind spacing */
+  --space-6xl: 64px; /* @kind spacing */
+
+  /* ---------- Border radius ---------- */
+  --radius-none: 0; /* @kind radius */
+  --radius-xs: 2px;    /* chart bar caps */
+  --radius-sm: 4px;    /* buttons, pills, inputs (medium) */
+  --radius-md: 5.5px;  /* buttons (large) */
+  --radius-lg: 8px;    /* cards */
+  --radius-xl: 12px; /* @kind radius */
+  --radius-2xl: 16px; /* @kind radius */
+  --radius-pill: 999px; /* @kind radius */
+  --radius-full: 50%; /* @kind radius */
+
+  /* ---------- Border width ---------- */
+  --border-width-hairline: 1px; /* @kind radius */
+  --border-width-thick: 2px; /* @kind radius */
+
+  /* ---------- Elevation / shadow ---------- */
+  --shadow-none: none; /* @kind shadow */
+  --shadow-hairline: inset 0 0 0 1px rgba(0, 0, 0, 0.04);   /* outlined controls */
+  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.05); /* @kind shadow */
+  --shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04); /* @kind shadow */
+  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08), 0 2px 4px rgba(16, 24, 40, 0.04); /* @kind shadow */
+  --shadow-lg: 0 12px 28px rgba(16, 24, 40, 0.12), 0 4px 8px rgba(16, 24, 40, 0.06); /* @kind shadow */
+  --shadow-xl: 0 24px 48px rgba(16, 24, 40, 0.16); /* @kind shadow */
+  --shadow-brand: 0 8px 24px rgba(45, 95, 255, 0.28); /* @kind shadow */
+
+  /* ---------- Opacity ---------- */
+  --opacity-disabled: 0.4; /* @kind other */
+  --opacity-muted: 0.5; /* @kind other */
+  --opacity-subtle: 0.85; /* @kind other */
+
+  /* ---------- Blur ---------- */
+  --blur-sm: 4px; /* @kind other */
+  --blur-md: 12px; /* @kind other */
+  --blur-lg: 24px; /* @kind other */
+
+  /* ---------- Z-index ---------- */
+  --z-base: 0; /* @kind other */
+  --z-raised: 10; /* @kind other */
+  --z-sticky: 100; /* @kind other */
+  --z-drawer: 200; /* @kind other */
+  --z-overlay: 300; /* @kind other */
+  --z-modal: 400; /* @kind other */
+  --z-toast: 500; /* @kind other */
+  --z-tooltip: 600; /* @kind other */
+
+  /* ---------- Motion ---------- */
+  --duration-instant: 80ms; /* @kind other */
+  --duration-fast: 140ms; /* @kind other */
+  --duration-base: 200ms; /* @kind other */
+  --duration-slow: 320ms; /* @kind other */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1); /* @kind other */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1); /* @kind other */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1); /* @kind other */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1); /* @kind other */
+
+  /* ---------- Icon sizes ---------- */
+  --icon-xs: 16px; /* @kind spacing */
+  --icon-sm: 20px; /* @kind spacing */
+  --icon-md: 24px; /* @kind spacing */
+  --icon-lg: 32px; /* @kind spacing */
+
+  /* ---------- Control heights ---------- */
+  --control-sm: 32px;   /* medium button */
+  --control-md: 44px;   /* large button */
+  --control-lg: 56px;   /* XL button */
+
+  /* ---------- Layout / grid ---------- */
+  --container-max: 1440px; /* @kind other */
+  --grid-columns: 12; /* @kind other */
+  --grid-gutter: 24px; /* @kind spacing */
+  --grid-margin: 32px; /* @kind spacing */
+  --sidebar-width: 84px; /* @kind spacing */
+  --bp-mobile: 480px; /* @kind other */
+  --bp-tablet: 768px; /* @kind other */
+  --bp-desktop: 1024px; /* @kind other */
+  --bp-wide: 1440px; /* @kind other */
+}

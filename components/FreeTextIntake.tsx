@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { aiInterpret } from "@/lib/ai-client";
 import type { InterpretResult } from "@/lib/ai-core";
+import { Button } from "@/components/ui/Button";
 
 interface Props {
   onInterpreted: (result: InterpretResult) => void;
@@ -27,8 +28,24 @@ export function FreeTextIntake({ onInterpreted }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-gray-50 p-4">
-      <label htmlFor="freetext" className="text-sm font-medium text-gray-700">
+    <div
+      className="flex flex-col gap-2"
+      style={{
+        background: "var(--surface-sunken)",
+        border: "1px solid var(--border-default)",
+        borderRadius: "var(--radius-lg)",
+        padding: "var(--space-large)",
+      }}
+    >
+      <label
+        htmlFor="freetext"
+        style={{
+          fontFamily: "var(--font-body)",
+          fontSize: "var(--text-body-sm)",
+          fontWeight: "var(--fw-medium)",
+          color: "var(--text-default)",
+        }}
+      >
         Entrada rápida (opcional)
       </label>
       <textarea
@@ -37,19 +54,18 @@ export function FreeTextIntake({ onInterpreted }: Props) {
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Descreva a demanda do jeito que ela chegou…"
-        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+        className="w-full resize-y rounded-[var(--radius-sm)] border border-[var(--border-default)] bg-[color:var(--surface-card)] px-3 py-2.5 outline-none focus:border-[var(--color-brand)] focus:shadow-[var(--focus-ring)] transition-colors duration-150"
+        style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-body-md)", color: "var(--text-default)" }}
       />
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={handle}
-          disabled={loading}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-        >
+        <Button type="button" onClick={handle} disabled={loading} variant="filled" size="medium">
           {loading ? "Interpretando…" : "Interpretar"}
-        </button>
+        </Button>
         {error && (
-          <span role="alert" className="text-sm text-red-600">
+          <span
+            role="alert"
+            style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-body-sm)", color: "var(--color-danger)" }}
+          >
             Não consegui interpretar agora. Você pode preencher na mão.
           </span>
         )}

@@ -9,6 +9,7 @@ import { validateRequired } from "@/lib/validate";
 import { aiRedact } from "@/lib/ai-client";
 import { saveDraft, loadDraft, clearDraft } from "@/lib/draft";
 import type { InterpretResult } from "@/lib/ai-core";
+import { Button } from "@/components/ui/Button";
 
 export default function Page() {
   const { demand, setType, setValue, setAll, reset } = useDemand();
@@ -67,10 +68,22 @@ export default function Page() {
   }
 
   return (
-    <main className="mx-auto flex max-w-3xl flex-col gap-6 p-6">
-      <header>
-        <h1 className="text-xl font-bold text-gray-900">Pauta de Demandas</h1>
-        <p className="text-sm text-gray-500">
+    <main
+      className="mx-auto flex w-full flex-col gap-6 px-6 py-10 md:py-[var(--space-4xl)]"
+      style={{ maxWidth: 760 }}
+    >
+      <header className="flex flex-col gap-1.5">
+        <h1
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "var(--text-title-xl)",
+            fontWeight: "var(--fw-bold)",
+            color: "var(--text-strong)",
+          }}
+        >
+          Pauta de Demandas
+        </h1>
+        <p style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-body-sm)", color: "var(--text-muted)" }}>
           Descreva ou preencha a demanda; a ferramenta monta o texto técnico pra gestão.
         </p>
       </header>
@@ -80,21 +93,18 @@ export default function Page() {
       <GapReview gaps={gaps} />
 
       <div className="flex gap-3">
-        <button
+        <Button
           type="button"
           onClick={handleGenerate}
           disabled={generating || !demand.typeId}
-          className="rounded-md bg-blue-600 px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
+          variant="filled"
+          size="large"
         >
           {generating ? "Gerando…" : "Gerar texto"}
-        </button>
-        <button
-          type="button"
-          onClick={handleReset}
-          className="rounded-md border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700"
-        >
+        </Button>
+        <Button type="button" onClick={handleReset} variant="outlined" size="large">
           Limpar
-        </button>
+        </Button>
       </div>
 
       {output && <OutputPreview text={output} onCopy={handleCopy} />}

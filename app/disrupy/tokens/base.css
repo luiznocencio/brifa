@@ -1,0 +1,31 @@
+/* Disrupy — base element defaults & link colors.
+   Kept minimal: sets the body type baseline and default link styling
+   (users add links later; without this they render browser-blue). */
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-body-md);
+  line-height: var(--lh-body-md);
+  color: var(--text-default);
+  background: var(--surface-page);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+:root { color-scheme: light; }
+:root[data-theme="dark"], .dark { color-scheme: dark; }
+
+a {
+  color: var(--text-brand);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+a:hover { color: var(--color-brand-pressed); text-decoration: underline; }
+
+::selection { background: var(--color-brand-soft); color: var(--color-brand-pressed); }
+
+*:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}

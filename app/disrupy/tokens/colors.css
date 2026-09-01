@@ -1,0 +1,150 @@
+/* Disrupy — Semantic color aliases
+   Built on the raw Figma Variable palette in fig-tokens.css.
+   Raw ramps (verbatim from the file):
+     blue-ribbon  (brand)   50 → 500  ·  santas-gray (neutral) 50 → 950
+     chateau-green (success) · valencia (danger) · cream-can (warning)
+     steel-blue / turquoise-blue (info/data accents)
+   Accent purple #9747FF and deep purple #6E2DCE appear as literal fills
+   in charts, headings and avatars — captured here as brand accents. */
+
+:root {
+  /* ---------- Brand ---------- */
+  --color-brand: rgb(45, 95, 255);          /* blue-ribbon-500  #2D5FFF */
+  --color-brand-hover: rgb(89, 140, 255);   /* blue-ribbon-400 */
+  --color-brand-pressed: rgb(30, 74, 214);  /* darkened 500 */
+  --color-brand-soft: rgb(238, 244, 255);   /* blue-ribbon-50 */
+  --color-brand-100: rgb(217, 229, 255);
+  --color-brand-200: rgb(188, 210, 255);
+  --color-brand-300: rgb(142, 181, 255);
+  --color-brand-400: rgb(89, 140, 255);
+  --color-brand-500: rgb(45, 95, 255);
+
+  /* ---------- Accent (purple) ---------- */
+  --color-accent: rgb(151, 71, 255);        /* #9747FF headings/avatars */
+  --color-accent-deep: rgb(110, 45, 206);   /* #6E2DCE chart investment */
+
+  /* ---------- Neutrals (santas-gray) ---------- */
+  --color-white: rgb(255, 255, 255);
+  --color-black: rgb(0, 0, 0);
+  --color-neutral-50: rgb(246, 246, 247);
+  --color-neutral-100: rgb(233, 241, 245);
+  --color-neutral-200: rgb(228, 233, 240);
+  --color-neutral-300: rgb(201, 204, 212);
+  --color-neutral-400: rgb(183, 186, 194);
+  --color-neutral-500: rgb(155, 158, 169);
+  --color-neutral-600: rgb(142, 144, 157);
+  --color-neutral-900: rgb(84, 85, 91);
+  --color-neutral-950: rgb(49, 50, 53);
+
+  /* ---------- Surfaces & backgrounds ---------- */
+  --surface-page: rgb(246, 246, 247);       /* bg-color-2 */
+  --surface-card: rgb(255, 255, 255);       /* bg-color-1 */
+  --surface-raised: rgb(255, 255, 255);
+  --surface-sunken: rgb(239, 243, 248);
+  --surface-brand: rgb(45, 95, 255);
+  --surface-accent: rgb(151, 71, 255);
+
+  /* ---------- Borders / hairlines ---------- */
+  --border-subtle: rgba(0, 0, 0, 0.04);     /* black-overlay-50 (outlined btn) */
+  --border-default: rgb(223, 231, 239);     /* common stroke #DFE7EF */
+  --border-strong: rgb(201, 204, 212);      /* santas-gray-300 */
+  --border-brand: rgb(142, 181, 255);       /* blue-ribbon-300 focus ring base */
+
+  /* ---------- Text ---------- */
+  --text-strong: rgb(0, 0, 0);              /* headings on light */
+  --text-default: rgb(49, 50, 53);          /* body #313235 */
+  --text-muted: rgb(84, 85, 91);            /* secondary #54555B */
+  --text-subtle: rgb(155, 158, 169);        /* tertiary / captions */
+  --text-on-brand: rgb(255, 255, 255); /* @kind font */
+  --text-brand: rgb(45, 95, 255); /* @kind font */
+  --text-accent: rgb(151, 71, 255); /* @kind font */
+
+  /* ---------- Semantic states ---------- */
+  --color-success: rgb(84, 167, 88);        /* chateau-green-500 */
+  --color-success-soft: rgb(243, 250, 243); /* chateau-green-50 */
+  --color-success-border: rgb(162, 211, 164);
+  --color-warning: rgb(235, 143, 21);       /* cream-can-500 */
+  --color-warning-soft: rgb(254, 250, 236); /* cream-can-50 */
+  --color-danger: rgb(217, 58, 48);         /* valencia-600 */
+  --color-danger-strong: rgb(235, 82, 72);  /* valencia-500 */
+  --color-danger-soft: rgb(254, 243, 242);  /* valencia-50 */
+  --color-danger-border: rgb(250, 172, 167);
+  --color-info: rgb(66, 121, 165);          /* steel-blue-500 */
+  --color-info-soft: rgb(244, 247, 251);    /* steel-blue-50 */
+  --color-info-accent: rgb(0, 202, 229);    /* turquoise-blue-500 */
+
+  /* ---------- Interaction overlays ---------- */
+  --overlay-hover: rgba(0, 0, 0, 0.04);
+  --overlay-pressed: rgba(0, 0, 0, 0.08);
+  --overlay-scrim: rgba(0, 0, 0, 0.16);
+  --overlay-on-brand-hover: rgba(255, 255, 255, 0.12);
+  --focus-ring: 0 0 0 3px rgba(45, 95, 255, 0.32); /* @kind shadow */
+
+  /* ---------- Data-viz gradients ---------- */
+  --chart-revenue: linear-gradient(180deg, rgb(45,95,255) 0%, rgba(10,201,253,0.01) 100%); /* @kind other */
+  --chart-investment: linear-gradient(180deg, rgb(110,45,206) 0%, rgba(10,201,253,0.01) 100%); /* @kind other */
+  --chart-area: linear-gradient(180deg, rgba(162,211,164,0.44) 0%, rgba(162,211,164,0) 100%); /* @kind other */
+}
+
+/* ---------- Dark theme ----------
+   Verbatim from the Figma "dark" mode (bg-colors / text-color collections):
+     bg-color-2  → neutral-1000  #000000  (page)
+     bg-color-1  → neutral-950   #313235  (card)
+     text-color-1 → white · text-color-2 → #E9F1F5 · text-color-3 → #F6F6F7
+   Brand/accent/semantic hues are unchanged across modes; only surfaces,
+   text, borders and overlays flip. Apply via :root[data-theme="dark"] or
+   any ancestor with class="dark". */
+:root[data-theme="dark"], .dark {
+  /* Surfaces & backgrounds */
+  --surface-page: rgb(0, 0, 0);            /* bg-color-2 */
+  --surface-card: rgb(49, 50, 53);         /* bg-color-1 #313235 */
+  --surface-raised: rgb(66, 67, 71);       /* one step above card */
+  --surface-sunken: rgb(0, 0, 0);
+  --surface-brand: rgb(45, 95, 255);
+  --surface-accent: rgb(151, 71, 255);
+
+  /* Brand soft tints re-based for dark ground */
+  --color-brand-soft: rgba(45, 95, 255, 0.16);
+  --color-neutral-50: rgb(49, 50, 53);
+  --color-neutral-100: rgb(66, 67, 71);
+  --color-neutral-200: rgb(84, 85, 91);
+
+  /* Borders / hairlines */
+  --border-subtle: rgba(255, 255, 255, 0.08);   /* white-overlay-100 */
+  --border-default: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.24);
+  --border-brand: rgb(89, 140, 255);
+
+  /* Text */
+  --text-strong: rgb(255, 255, 255);       /* text-color-1 */
+  --text-default: rgb(233, 241, 245);      /* text-color-2 #E9F1F5 */
+  --text-muted: rgb(183, 186, 194);        /* dimmed for hierarchy */
+  --text-subtle: rgb(142, 144, 157);       /* tertiary / captions */
+  --text-brand: rgb(89, 140, 255);
+  --text-accent: rgb(180, 130, 255);
+
+  /* Semantic soft tints re-based for dark ground */
+  --color-success-soft: rgba(84, 167, 88, 0.18);
+  --color-warning-soft: rgba(235, 143, 21, 0.18);
+  --color-danger-soft: rgba(235, 82, 72, 0.18);
+  --color-info-soft: rgba(66, 121, 165, 0.20);
+
+  /* Interaction overlays */
+  --overlay-hover: rgba(255, 255, 255, 0.06);
+  --overlay-pressed: rgba(255, 255, 255, 0.12);
+  --overlay-scrim: rgba(0, 0, 0, 0.56);
+  --focus-ring: 0 0 0 3px rgba(89, 140, 255, 0.40);
+
+  /* Elevation — deeper, black-based on dark ground */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.40);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.48), 0 1px 2px rgba(0, 0, 0, 0.32);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.48), 0 2px 4px rgba(0, 0, 0, 0.32);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.56), 0 4px 8px rgba(0, 0, 0, 0.40);
+  --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.64);
+  --shadow-brand: 0 8px 24px rgba(45, 95, 255, 0.44);
+
+  /* Data-viz gradients tuned to sit on black */
+  --chart-revenue: linear-gradient(180deg, rgb(89,140,255) 0%, rgba(10,201,253,0.01) 100%); /* @kind other */
+  --chart-investment: linear-gradient(180deg, rgb(151,71,255) 0%, rgba(10,201,253,0.01) 100%); /* @kind other */
+  --chart-area: linear-gradient(180deg, rgba(162,211,164,0.28) 0%, rgba(162,211,164,0) 100%); /* @kind other */
+}

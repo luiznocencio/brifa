@@ -125,14 +125,15 @@ export default function Page() {
           style={{
             fontFamily: "var(--font-display)",
             fontSize: "var(--text-title-xl)",
-            fontWeight: "var(--fw-bold)",
+            fontWeight: "var(--fw-extrabold)",
+            letterSpacing: "var(--tracking-tight)",
             color: "var(--text-strong)",
           }}
         >
-          Pauta de Demandas
+          BRIFA
         </h1>
         <p style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-body-sm)", color: "var(--text-muted)" }}>
-          Uma campanha pode ter vários itens. Descreva ou preencha; a ferramenta monta o texto técnico pra gestão.
+          Inteligência de briefing pra agência. Me conta o que chegou — o BRIFA faz as perguntas certas e transforma a demanda em direção pra criação.
         </p>
       </header>
 
@@ -154,7 +155,7 @@ export default function Page() {
 
       <div className="flex gap-3">
         <Button type="button" onClick={handleGenerate} disabled={!canGenerate} variant="filled" size="large">
-          {generating ? "Gerando…" : "Gerar texto"}
+          {generating ? "Gerando…" : "Gerar briefing"}
         </Button>
         <Button type="button" onClick={handleReset} variant="outlined" size="large">
           Limpar

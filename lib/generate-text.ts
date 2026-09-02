@@ -21,7 +21,7 @@ export function generateDemandText(demand: DemandData): string {
   const blocks: string[] = [];
 
   // Cabeçalho da campanha — só o que foi preenchido.
-  const headerLines = ["SOLICITACAO DE DEMANDA", ""];
+  const headerLines = ["BRIEFING", ""];
   if (campVal(demand, "cliente")) headerLines.push(line(labelOfCampaign("cliente"), campVal(demand, "cliente")));
   const prioPrazo = [
     campVal(demand, "prioridade") && line(labelOfCampaign("prioridade"), campVal(demand, "prioridade")),

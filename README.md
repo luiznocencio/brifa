@@ -1,7 +1,10 @@
-# Pauta de Demandas
+# BRIFA
 
-Web app que ajuda o atendimento a pautar demandas com todas as informações
-técnicas e gerar um texto padronizado pra colar no iClips.
+Inteligência de briefing para agências e times de comunicação. O BRIFA
+transforma uma demanda inicial — muitas vezes vaga ou incompleta — em um
+briefing claro, estratégico e acionável, pronto pra colar no iClips.
+
+Antes de criar, Brifa.
 
 ## Rodar localmente
 

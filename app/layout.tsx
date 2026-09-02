@@ -3,8 +3,8 @@ import "./globals.css";
 import "./disrupy/styles.css";
 
 export const metadata: Metadata = {
-  title: "Pauta de Demandas",
-  description: "Formulário inteligente de pauta de demandas para atendimento.",
+  title: "BRIFA",
+  description: "Inteligência de briefing para agências. Transforma a demanda em briefing claro e acionável — antes de criar.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

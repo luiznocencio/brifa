@@ -31,6 +31,6 @@ describe("ai-core (modo mock)", () => {
 
   it("mockRedact devolve o texto padronizado", () => {
     const demand: DemandData = { values: { cliente: "X" }, items: [] };
-    expect(mockRedact(demand).text.startsWith("SOLICITACAO DE DEMANDA")).toBe(true);
+    expect(mockRedact(demand).text.startsWith("BRIEFING")).toBe(true);
   });
 });

@@ -147,7 +147,7 @@ async function aiRedact(client: OpenAI, demand: DemandData): Promise<{ text: str
     temperature: 0.3,
   });
   const text = res.choices[0]?.message?.content?.trim();
-  return { text: text && text.startsWith("SOLICITACAO") ? text : base };
+  return { text: text && text.startsWith("BRIEFING") ? text : base };
 }
 
 async function aiPropose(client: OpenAI, freeText: string): Promise<ProposeResult> {

@@ -37,7 +37,7 @@ export interface DemandData {
 // Campos de NÍVEL CAMPANHA — compartilhados por todos os itens.
 export const CAMPAIGN_FIELDS: FieldDef[] = [
   { id: "cliente", label: "Cliente / Campanha", type: "text", required: true, placeholder: "Ex.: Loja X — Campanha de inauguração" },
-  { id: "objetivo", label: "Objetivo / tema da campanha", type: "textarea", required: true, placeholder: "Ex.: Divulgar a inauguração da nova loja e atrair moradores do bairro" },
+  { id: "objetivo", label: "O que essa campanha precisa mudar?", type: "textarea", required: true, placeholder: "Ex.: fazer o bairro descobrir a loja nova e lotar a inauguração" },
   { id: "publico", label: "Público-alvo", type: "text", required: false, placeholder: "Ex.: Mulheres 25–40, clientes da região" },
   { id: "prazo", label: "Prazo de entrega", type: "date", required: true },
   {
@@ -251,7 +251,7 @@ export const DEMAND_TYPES: DemandTypeDef[] = [
   {
     id: "outros", category: "Outros", label: "Outro / não listado",
     fields: [
-      { id: "descricao_livre", label: "Descrição do item", type: "textarea", required: true, placeholder: "Ex.: O que é, medidas, quantidade, onde vai ser usado…" },
+      { id: "descricao_livre", label: "Me conta o que é", type: "textarea", required: true, placeholder: "Ex.: o que é, medidas, quantidade, onde vai ser usado…" },
     ],
   },
 ];

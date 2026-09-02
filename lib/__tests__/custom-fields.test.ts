@@ -82,6 +82,6 @@ describe("customFields no item", () => {
     const demand: DemandData = { values: { cliente: "X" }, items: [item] };
     const text = generateDemandText(demand);
     expect(text).toContain("Medidas: 50 x 180 cm");
-    expect(text).toContain("Descrição do item: Um totem");
+    expect(text).toContain("Me conta o que é: Um totem");
   });
 });

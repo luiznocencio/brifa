@@ -21,7 +21,7 @@ export function GapReview({ gaps }: Props) {
         className="mb-2"
         style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-body-sm)", fontWeight: "var(--fw-semibold)" }}
       >
-        Antes de gerar, confira o que está faltando:
+        Falta o essencial pra fechar um bom briefing:
       </p>
       <ul
         className="list-disc pl-5"

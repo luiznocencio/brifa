@@ -34,7 +34,7 @@ export function CustomFieldsBuilder({ description, hasFields, onProposed }: Prop
       style={{ background: "var(--color-brand-soft)", border: "1px solid var(--border-default)" }}
     >
       <p style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-body-sm)", color: "var(--text-default)" }}>
-        Descreva a demanda no campo acima e deixe a IA montar os campos técnicos necessários para ela.
+        Me conta o que é no campo acima — o BRIFA monta os campos certos pra essa peça.
       </p>
       <div>
         <Button type="button" onClick={handle} disabled={disabled} variant={hasFields ? "soft" : "filled"} size="medium">

@@ -20,7 +20,7 @@ export function OutputPreview({ text, onCopy }: Props) {
             color: "var(--text-subtle)",
           }}
         >
-          Texto da solicitação
+Briefing
         </h2>
         <Button type="button" onClick={onCopy} variant="filled" size="medium">
           Copiar

@@ -46,7 +46,7 @@ export function FreeTextIntake({ onInterpreted }: Props) {
           color: "var(--text-default)",
         }}
       >
-        Entrada rápida (opcional)
+        Me conta o que chegou
       </label>
       <textarea
         id="freetext"
@@ -59,14 +59,14 @@ export function FreeTextIntake({ onInterpreted }: Props) {
       />
       <div className="flex items-center gap-3">
         <Button type="button" onClick={handle} disabled={loading} variant="filled" size="medium">
-          {loading ? "Interpretando…" : "Interpretar"}
+          {loading ? "Brifando…" : "Brifar"}
         </Button>
         {error && (
           <span
             role="alert"
             style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-body-sm)", color: "var(--color-danger)" }}
           >
-            Não consegui interpretar agora. Você pode preencher na mão.
+            Não consegui brifar agora. Você pode preencher na mão.
           </span>
         )}
       </div>

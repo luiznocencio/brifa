@@ -13,7 +13,7 @@ const demand: DemandData = {
 describe("generateDemandText (campanha + itens)", () => {
   it("começa com o cabeçalho e traz os dados de campanha preenchidos", () => {
     const t = generateDemandText(demand);
-    expect(t.startsWith("SOLICITACAO DE DEMANDA")).toBe(true);
+    expect(t.startsWith("BRIEFING")).toBe(true);
     expect(t).toContain("Cliente / Campanha: Loja X");
     expect(t).toContain("OBJETIVO / TEMA");
     expect(t).toContain("Público-alvo: Bairro");

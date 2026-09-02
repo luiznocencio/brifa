@@ -1,0 +1,14 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- BRIFA — monograma B. Tile de marca + B geométrico custom (haste + duas bojas
+       assimétricas). Self-contained: legível em fundo claro e escuro, e a 16px. -->
+  <rect width="32" height="32" rx="7.5" fill="#2D5FFF"/>
+  <g fill="#FFFFFF">
+    <rect x="8.5" y="6.5" width="5" height="19" rx="1"/>
+    <rect x="8.5" y="6.5" width="10.6" height="9.4" rx="4.7"/>
+    <rect x="8.5" y="15.1" width="12.1" height="10.4" rx="5.2"/>
+  </g>
+  <g fill="#2D5FFF">
+    <rect x="12.7" y="9.2" width="4.7" height="3.9" rx="1.95"/>
+    <rect x="12.7" y="17.5" width="5.5" height="4.9" rx="2.45"/>
+  </g>
+</svg>

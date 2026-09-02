@@ -6,8 +6,8 @@ import { OutputPreview } from "@/components/OutputPreview";
 describe("OutputPreview", () => {
   it("mostra o texto e dispara onCopy", async () => {
     const onCopy = vi.fn();
-    render(<OutputPreview text="SOLICITACAO DE DEMANDA" onCopy={onCopy} />);
-    expect(screen.getByText(/SOLICITACAO DE DEMANDA/)).toBeInTheDocument();
+    render(<OutputPreview text="Cliente: Loja X" onCopy={onCopy} />);
+    expect(screen.getByText(/Cliente: Loja X/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /copiar/i }));
     expect(onCopy).toHaveBeenCalled();
   });

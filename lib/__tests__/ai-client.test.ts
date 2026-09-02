@@ -20,7 +20,7 @@ describe("ai-client", () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
     const demand: DemandData = { values: { cliente: "X" }, items: [] };
     const r = await aiRedact(demand);
-    expect(r.text.startsWith("SOLICITACAO DE DEMANDA")).toBe(true);
+    expect(r.text.startsWith("BRIEFING")).toBe(true);
   });
 
   it("aiPropose no caminho feliz e no fallback", async () => {

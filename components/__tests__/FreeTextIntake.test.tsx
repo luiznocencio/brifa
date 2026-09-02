@@ -19,7 +19,7 @@ describe("FreeTextIntake", () => {
       screen.getByPlaceholderText(/descreva a demanda/i),
       "adesivo pra fachada",
     );
-    await userEvent.click(screen.getByRole("button", { name: /interpretar/i }));
+    await userEvent.click(screen.getByRole("button", { name: /brifar/i }));
 
     expect(onInterpreted).toHaveBeenCalledWith(fake);
   });
@@ -28,7 +28,7 @@ describe("FreeTextIntake", () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
     render(<FreeTextIntake onInterpreted={vi.fn()} />);
     await userEvent.type(screen.getByPlaceholderText(/descreva a demanda/i), "x");
-    await userEvent.click(screen.getByRole("button", { name: /interpretar/i }));
+    await userEvent.click(screen.getByRole("button", { name: /brifar/i }));
     expect(await screen.findByRole("alert")).toBeInTheDocument();
   });
 });

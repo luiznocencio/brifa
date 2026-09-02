@@ -1,66 +1,76 @@
 import { describe, it, expect } from "vitest";
 import {
-  TRUNK_FIELDS,
+  CAMPAIGN_FIELDS,
   DEMAND_TYPES,
   getTypeById,
-  getFieldsForType,
+  getCategories,
+  typesInCategory,
+  categoryOfType,
+  newItem,
+  campaignVisibleFields,
+  itemVisibleFields,
+  effectiveItemFields,
 } from "@/lib/demand-map";
 
 describe("mapa técnico", () => {
-  it("tronco comum tem os campos-chave obrigatórios", () => {
-    const ids = TRUNK_FIELDS.map((f) => f.id);
+  it("campos de campanha têm os obrigatórios-chave (e não têm solicitante/aprovador)", () => {
     for (const id of ["cliente", "objetivo", "prazo", "prioridade"]) {
-      const f = TRUNK_FIELDS.find((x) => x.id === id);
-      expect(f, `campo ${id} existe`).toBeTruthy();
-      expect(f!.required, `campo ${id} é obrigatório`).toBe(true);
+      const f = CAMPAIGN_FIELDS.find((x) => x.id === id);
+      expect(f, id).toBeTruthy();
+      expect(f!.required).toBe(true);
     }
+    const ids = CAMPAIGN_FIELDS.map((f) => f.id);
     expect(ids).toContain("publico");
     expect(ids).toContain("observacoes");
-    // solicitante e aprovador foram removidos do tronco
     expect(ids).not.toContain("solicitante");
     expect(ids).not.toContain("aprovador");
   });
 
-  it("inclui os 6 subtipos de produções offline", () => {
+  it("6 subtipos offline, cada um com medida/quantidade/aplicação", () => {
     const offline = DEMAND_TYPES.filter((t) => t.category === "Produções Offline");
     expect(offline.length).toBe(6);
-    const labels = offline.map((t) => t.label.toLowerCase());
-    expect(labels.some((l) => l.includes("sinaliza"))).toBe(true);
-    expect(labels.some((l) => l.includes("pdv") || l.includes("trade"))).toBe(true);
-    expect(labels.some((l) => l.includes("evento") || l.includes("ativa"))).toBe(true);
-    expect(labels.some((l) => l.includes("grande"))).toBe(true);
-    expect(labels.some((l) => l.includes("brinde") || l.includes("merch"))).toBe(true);
-    expect(labels.some((l) => l.includes("impress"))).toBe(true);
-  });
-
-  it("todo tipo offline exige medida real, quantidade e aplicação/local", () => {
-    const offline = DEMAND_TYPES.filter((t) => t.category === "Produções Offline");
     for (const t of offline) {
       const ids = t.fields.map((f) => f.id);
-      expect(ids, `${t.label} tem medida_real`).toContain("medida_real");
-      expect(ids, `${t.label} tem quantidade`).toContain("quantidade");
-      expect(ids, `${t.label} tem aplicacao_local`).toContain("aplicacao_local");
+      expect(ids).toContain("medida_real");
+      expect(ids).toContain("quantidade");
+      expect(ids).toContain("aplicacao_local");
     }
   });
 
-  it("ids de campo são únicos dentro de cada tipo (tronco + galho)", () => {
+  it("ids únicos dentro de campanha + tipo", () => {
     for (const t of DEMAND_TYPES) {
-      const ids = getFieldsForType(t.id).map((f) => f.id);
-      expect(new Set(ids).size, `${t.label} sem ids duplicados`).toBe(ids.length);
+      const ids = [...CAMPAIGN_FIELDS.map((f) => f.id), ...t.fields.map((f) => f.id)];
+      expect(new Set(ids).size, t.label).toBe(ids.length);
     }
   });
 
-  it("getTypeById e getFieldsForType funcionam", () => {
+  it("categorias e helpers de cascata funcionam", () => {
+    expect(getCategories()).toContain("Impresso / Gráfico");
+    expect(typesInCategory("Impresso / Gráfico").length).toBeGreaterThanOrEqual(3);
     const t = DEMAND_TYPES[0];
+    expect(categoryOfType(t.id)).toBe(t.category);
     expect(getTypeById(t.id)?.id).toBe(t.id);
-    expect(getTypeById("inexistente")).toBeUndefined();
-    const fields = getFieldsForType(t.id);
-    expect(fields.length).toBe(TRUNK_FIELDS.length + t.fields.length);
-    // tronco vem primeiro
-    expect(fields[0].id).toBe(TRUNK_FIELDS[0].id);
+    expect(categoryOfType("inexistente")).toBe("");
   });
 
-  it("existe um tipo de fallback 'Outros'", () => {
+  it("fallback 'Outros' existe", () => {
     expect(DEMAND_TYPES.some((t) => t.category === "Outros")).toBe(true);
+  });
+
+  it("newItem gera item com id único e sem tipo", () => {
+    const a = newItem();
+    const b = newItem("social-post");
+    expect(a.id).not.toBe(b.id);
+    expect(a.typeId).toBe("");
+    expect(b.typeId).toBe("social-post");
+  });
+
+  it("campaignVisibleFields e itemVisibleFields expandem condicionais", () => {
+    expect(campaignVisibleFields({ values: { prioridade: "Urgente" }, items: [] }).map((f) => f.id)).toContain("motivo_urgencia");
+    const item = { id: "x", typeId: "av-video", values: { locucao: "Sim" } };
+    expect(itemVisibleFields(item).map((f) => f.id)).toContain("idioma_locucao");
+    expect(effectiveItemFields(item).map((f) => f.id)).toContain("duracao");
+    // prazo_item (nível item) entra no visível
+    expect(itemVisibleFields(item).map((f) => f.id)).toContain("prazo_item");
   });
 });

@@ -28,7 +28,7 @@ export function loadDraft(): DemandData | null {
     const raw = s.getItem(DRAFT_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === "object" && typeof parsed.typeId === "string") {
+    if (parsed && typeof parsed === "object" && typeof parsed.values === "object" && Array.isArray(parsed.items)) {
       return parsed as DemandData;
     }
     return null;

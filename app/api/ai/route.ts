@@ -12,7 +12,7 @@ import {
   type ProposeResult,
 } from "@/lib/ai-core";
 import { generateDemandText } from "@/lib/generate-text";
-import { DEMAND_TYPES, getFieldsForType, type DemandData } from "@/lib/demand-map";
+import { DEMAND_TYPES, CAMPAIGN_FIELDS, type DemandData } from "@/lib/demand-map";
 
 export const runtime = "nodejs";
 
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
 }
 
 function emptyDemand(): DemandData {
-  return { typeId: "outros", values: {} };
+  return { values: {}, items: [] };
 }
 
 function runMock(body: Body) {
@@ -78,17 +78,22 @@ async function aiInterpret(client: OpenAI, freeText: string): Promise<InterpretR
   const catalog = DEMAND_TYPES.map((t) => ({
     typeId: t.id,
     label: `${t.category} › ${t.label}`,
-    fields: getFieldsForType(t.id).map((f) => ({ id: f.id, label: f.label })),
+    fields: t.fields.map((f) => ({ id: f.id, label: f.label })),
   }));
+  const campaignFields = CAMPAIGN_FIELDS.map((f) => ({ id: f.id, label: f.label }));
 
   const prompt = [
-    "Você classifica demandas de uma agência criativa e extrai campos.",
-    "Dado o texto livre do atendente, escolha o typeId mais adequado do catálogo",
-    "e extraia valores para os campos daquele tipo (id -> valor) apenas quando",
-    "o texto deixar claro. Não invente. Responda SOMENTE JSON:",
-    '{"typeId": "...", "values": {"campo_id": "valor"}, "unmatched": ["trechos não usados"]}',
+    "Você estrutura uma demanda de campanha de uma agência a partir de texto livre.",
+    "Uma campanha pode ter VÁRIAS peças (itens) — ex.: 'panfleto e cartaz' = 2 itens.",
+    "1) Extraia os valores de NÍVEL CAMPANHA (compartilhados) quando o texto deixar claro.",
+    "2) Para CADA peça citada, crie um item: escolha o typeId do catálogo e extraia os",
+    "   valores dos campos daquele tipo quando o texto deixar claro. Não invente valores.",
+    "Se nenhuma peça específica for citada, retorne um único item com o tipo mais provável.",
+    "Responda SOMENTE JSON:",
+    '{"campaignValues": {"campo_id": "valor"}, "items": [{"typeId": "...", "values": {"campo_id": "valor"}}], "unmatched": ["trechos não usados"]}',
     "",
-    `Catálogo: ${JSON.stringify(catalog)}`,
+    `Campos de campanha: ${JSON.stringify(campaignFields)}`,
+    `Catálogo de tipos: ${JSON.stringify(catalog)}`,
     `Texto livre: ${freeText}`,
   ].join("\n");
 
@@ -101,17 +106,25 @@ async function aiInterpret(client: OpenAI, freeText: string): Promise<InterpretR
 
   const raw = res.choices[0]?.message?.content ?? "{}";
   try {
-    const parsed = JSON.parse(raw) as InterpretResult;
-    const typeId = DEMAND_TYPES.some((t) => t.id === parsed.typeId)
-      ? parsed.typeId
-      : classifyByKeywords(freeText);
+    const parsed = JSON.parse(raw) as {
+      campaignValues?: Record<string, string>;
+      items?: { typeId?: string; values?: Record<string, string> }[];
+      unmatched?: string[];
+    };
+    const items =
+      Array.isArray(parsed.items) && parsed.items.length > 0
+        ? parsed.items.map((it) => ({
+            typeId: DEMAND_TYPES.some((t) => t.id === it.typeId) ? (it.typeId as string) : classifyByKeywords(freeText),
+            values: it.values && typeof it.values === "object" ? it.values : {},
+          }))
+        : [{ typeId: classifyByKeywords(freeText), values: {} }];
     return {
-      typeId,
-      values: parsed.values ?? {},
-      unmatched: parsed.unmatched ?? [],
+      campaignValues: parsed.campaignValues && typeof parsed.campaignValues === "object" ? parsed.campaignValues : {},
+      items,
+      unmatched: Array.isArray(parsed.unmatched) ? parsed.unmatched : [],
     };
   } catch {
-    return { typeId: classifyByKeywords(freeText), values: {}, unmatched: [freeText] };
+    return { campaignValues: {}, items: [{ typeId: classifyByKeywords(freeText), values: {} }], unmatched: [freeText] };
   }
 }
 

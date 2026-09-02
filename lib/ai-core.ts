@@ -4,9 +4,15 @@ import { generateDemandText } from "@/lib/generate-text";
 
 export type AiAction = "interpret" | "review" | "redact" | "propose";
 
-export interface InterpretResult {
+// A interpretação pode gerar VÁRIOS itens (uma campanha com várias peças) +
+// valores de nível campanha (cliente, objetivo, prazo…).
+export interface InterpretedItem {
   typeId: string;
   values: Record<string, string>;
+}
+export interface InterpretResult {
+  campaignValues: Record<string, string>;
+  items: InterpretedItem[];
   unmatched: string[];
 }
 export interface ReviewResult {
@@ -122,7 +128,10 @@ const KEYWORDS: Array<{ typeId: string; words: string[] }> = [
   { typeId: "offline-eventos", words: ["evento", "stand", "ativa", "backdrop"] },
   { typeId: "offline-grande-formato", words: ["outdoor", "lona", "banner", "wind"] },
   { typeId: "offline-brindes", words: ["brinde", "caneca", "camiseta", "sacola"] },
-  { typeId: "offline-impressos-fisicos", words: ["folder impresso", "catalogo", "cartão", "cartao"] },
+  { typeId: "offline-impressos-fisicos", words: ["impresso físico", "impresso fisico"] },
+  { typeId: "impresso-panfleto", words: ["panfleto", "flyer"] },
+  { typeId: "impresso-cartaz", words: ["cartaz", "pôster", "poster"] },
+  { typeId: "impresso-editorial", words: ["folder", "catálogo", "catalogo", "cartão de visita", "cartao de visita"] },
   { typeId: "social-reels", words: ["reels", "vídeo curto", "video curto"] },
   { typeId: "social-carrossel", words: ["carrossel", "carousel"] },
   { typeId: "social-post", words: ["post", "feed", "story", "instagram"] },
@@ -141,15 +150,15 @@ export function classifyByKeywords(freeText: string): string {
 }
 
 export function mockInterpret(freeText: string): InterpretResult {
+  // O mock detecta UM tipo por palavra-chave e cria um único item (a IA real
+  // é quem separa a campanha em várias peças). Sem extração de valores.
   const typeId = classifyByKeywords(freeText);
-  // O mock não tenta extrair valores campo a campo (isso é papel da IA real);
-  // devolve o tipo detectado e o texto inteiro como "não casado".
-  return { typeId, values: {}, unmatched: freeText ? [freeText] : [] };
+  return { campaignValues: {}, items: [{ typeId, values: {} }], unmatched: freeText ? [freeText] : [] };
 }
 
 export function mockReview(demand: DemandData): ReviewResult {
   const missing = validateRequired(demand);
-  const gaps = missing.map((f) => `Falta preencher: ${f.label}.`);
+  const gaps = missing.map((m) => `Falta preencher: ${m.field.label}.`);
   return { gaps };
 }
 

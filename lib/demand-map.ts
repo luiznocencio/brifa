@@ -19,17 +19,25 @@ export interface DemandTypeDef {
   fields: FieldDef[];
 }
 
-export interface DemandData {
+// Um item = uma peça da campanha (tem seu próprio tipo e specs).
+export interface DemandItem {
+  id: string;
   typeId: string;
   values: Record<string, string>;
-  // Campos técnicos gerados pela IA para uma demanda não listada ("Outro").
-  // Quando presentes, complementam os campos estáticos do tipo.
+  // Campos técnicos gerados pela IA quando o item é "Outro / não listado".
   customFields?: FieldDef[];
 }
 
-export const TRUNK_FIELDS: FieldDef[] = [
+// Uma demanda = uma campanha (dados compartilhados) + vários itens.
+export interface DemandData {
+  values: Record<string, string>; // nível campanha (cliente, objetivo, prazo, prioridade…)
+  items: DemandItem[];
+}
+
+// Campos de NÍVEL CAMPANHA — compartilhados por todos os itens.
+export const CAMPAIGN_FIELDS: FieldDef[] = [
   { id: "cliente", label: "Cliente / Campanha", type: "text", required: true, placeholder: "Ex.: Loja X — Campanha de inauguração" },
-  { id: "objetivo", label: "Objetivo da peça", type: "textarea", required: true, placeholder: "Ex.: Divulgar a inauguração da nova loja e atrair moradores do bairro" },
+  { id: "objetivo", label: "Objetivo / tema da campanha", type: "textarea", required: true, placeholder: "Ex.: Divulgar a inauguração da nova loja e atrair moradores do bairro" },
   { id: "publico", label: "Público-alvo", type: "text", required: false, placeholder: "Ex.: Mulheres 25–40, clientes da região" },
   { id: "prazo", label: "Prazo de entrega", type: "date", required: true },
   {
@@ -41,6 +49,11 @@ export const TRUNK_FIELDS: FieldDef[] = [
     },
   },
   { id: "observacoes", label: "Observações", type: "textarea", required: false, placeholder: "Ex.: Usar a foto nova da fachada; cliente pediu urgência" },
+];
+
+// Campos de NÍVEL ITEM que valem para qualquer tipo (além dos campos do tipo).
+export const ITEM_EXTRA_FIELDS: FieldDef[] = [
+  { id: "prazo_item", label: "Prazo próprio deste item (se diferente da campanha)", type: "date", required: false },
 ];
 
 // Campos compartilhados por todos os subtipos offline (o núcleo crítico).
@@ -116,7 +129,7 @@ export const DEMAND_TYPES: DemandTypeDef[] = [
       { id: "referencias", label: "Referências", type: "textarea", required: false, placeholder: "Ex.: Links de referência de estilo" },
     ],
   },
-  // Impresso / Gráfico (digital-to-print, não offline físico de instalação)
+  // Impresso / Gráfico
   {
     id: "impresso-editorial", category: "Impresso / Gráfico", label: "Folder / Catálogo / Cartão",
     fields: [
@@ -125,6 +138,24 @@ export const DEMAND_TYPES: DemandTypeDef[] = [
       { id: "papel", label: "Papel", type: "text", required: false, placeholder: "Ex.: Couché 300g" },
       { id: "acabamento", label: "Acabamento", type: "text", required: false, placeholder: "Ex.: Laminação fosca, verniz localizado" },
       { id: "quantidade", label: "Quantidade", type: "number", required: true, placeholder: "Ex.: 1000" },
+    ],
+  },
+  {
+    id: "impresso-panfleto", category: "Impresso / Gráfico", label: "Panfleto / Flyer",
+    fields: [
+      { id: "formato_fechado", label: "Formato fechado", type: "text", required: true, placeholder: "Ex.: A5, 15x21 cm" },
+      { id: "frente_verso", label: "Frente e verso?", type: "select", required: false, options: ["Só frente", "Frente e verso"] },
+      { id: "papel", label: "Papel", type: "text", required: false, placeholder: "Ex.: Couché 150g" },
+      { id: "quantidade", label: "Quantidade", type: "number", required: true, placeholder: "Ex.: 5000" },
+    ],
+  },
+  {
+    id: "impresso-cartaz", category: "Impresso / Gráfico", label: "Cartaz / Pôster",
+    fields: [
+      { id: "formato_fechado", label: "Formato fechado", type: "text", required: true, placeholder: "Ex.: A3, 42x60 cm" },
+      { id: "papel", label: "Papel", type: "text", required: false, placeholder: "Ex.: Couché 250g" },
+      { id: "acabamento", label: "Acabamento", type: "text", required: false, placeholder: "Ex.: Laminação fosca" },
+      { id: "quantidade", label: "Quantidade", type: "number", required: true, placeholder: "Ex.: 200" },
     ],
   },
   // Identidade / Branding
@@ -220,7 +251,7 @@ export const DEMAND_TYPES: DemandTypeDef[] = [
   {
     id: "outros", category: "Outros", label: "Outro / não listado",
     fields: [
-      { id: "descricao_livre", label: "Descrição da demanda", type: "textarea", required: true, placeholder: "Ex.: O que é, medidas, quantidade, onde vai ser usado, prazo…" },
+      { id: "descricao_livre", label: "Descrição do item", type: "textarea", required: true, placeholder: "Ex.: O que é, medidas, quantidade, onde vai ser usado…" },
     ],
   },
 ];
@@ -229,32 +260,32 @@ export function getTypeById(id: string): DemandTypeDef | undefined {
   return DEMAND_TYPES.find((t) => t.id === id);
 }
 
-export function getFieldsForType(typeId: string): FieldDef[] {
-  const t = getTypeById(typeId);
-  return [...TRUNK_FIELDS, ...(t ? t.fields : [])];
+// Categorias na ordem em que aparecem (para o seletor em cascata).
+export function getCategories(): string[] {
+  const seen: string[] = [];
+  for (const t of DEMAND_TYPES) if (!seen.includes(t.category)) seen.push(t.category);
+  return seen;
 }
 
-// Campos técnicos efetivos de uma demanda: os estáticos do tipo escolhido,
-// acrescidos dos campos gerados pela IA (customFields), quando houver.
-export function effectiveTypeFields(demand: DemandData): FieldDef[] {
-  const t = getTypeById(demand.typeId);
-  const base = t ? t.fields : [];
-  if (demand.customFields && demand.customFields.length > 0) {
-    // Descarta campos da IA cujo id colida com o tronco ou com os campos
-    // estáticos do tipo, evitando ids/keys duplicados após a composição.
-    const reserved = new Set<string>([
-      ...TRUNK_FIELDS.map((f) => f.id),
-      ...base.map((f) => f.id),
-    ]);
-    const extra = demand.customFields.filter((f) => !reserved.has(f.id));
-    return [...base, ...extra];
-  }
-  return base;
+export function typesInCategory(category: string): DemandTypeDef[] {
+  return DEMAND_TYPES.filter((t) => t.category === category);
+}
+
+export function categoryOfType(typeId: string): string {
+  return getTypeById(typeId)?.category ?? "";
+}
+
+let itemSeq = 0;
+export function makeItemId(): string {
+  itemSeq += 1;
+  return `item_${Date.now().toString(36)}_${itemSeq}_${Math.random().toString(36).slice(2, 7)}`;
+}
+
+export function newItem(typeId = ""): DemandItem {
+  return { id: makeItemId(), typeId, values: {} };
 }
 
 // Expande a lista revelando os campos condicionais conforme os valores atuais.
-// Um campo com `reveal` insere, logo após ele, os campos da opção selecionada
-// (recursivamente — campos revelados também podem revelar outros).
 export function expandFields(fields: FieldDef[], values: Record<string, string>): FieldDef[] {
   const out: FieldDef[] = [];
   for (const f of fields) {
@@ -269,8 +300,29 @@ export function expandFields(fields: FieldDef[], values: Record<string, string>)
   return out;
 }
 
-// Tronco + campos técnicos efetivos, já expandidos pelos condicionais ativos.
-// (considera customFields da IA e o mecanismo de reveal em cascata.)
-export function getFieldsForDemand(demand: DemandData): FieldDef[] {
-  return expandFields([...TRUNK_FIELDS, ...effectiveTypeFields(demand)], demand.values);
+// Campos técnicos efetivos de um ITEM: os estáticos do tipo + os gerados pela IA
+// (customFields), descartando ids que colidam com campanha / item-extra / tipo.
+export function effectiveItemFields(item: DemandItem): FieldDef[] {
+  const t = getTypeById(item.typeId);
+  const base = t ? t.fields : [];
+  if (item.customFields && item.customFields.length > 0) {
+    const reserved = new Set<string>([
+      ...CAMPAIGN_FIELDS.map((f) => f.id),
+      ...ITEM_EXTRA_FIELDS.map((f) => f.id),
+      ...base.map((f) => f.id),
+    ]);
+    const extra = item.customFields.filter((f) => !reserved.has(f.id));
+    return [...base, ...extra];
+  }
+  return base;
+}
+
+// Campos visíveis (já com condicionais ativos) do NÍVEL CAMPANHA.
+export function campaignVisibleFields(demand: DemandData): FieldDef[] {
+  return expandFields(CAMPAIGN_FIELDS, demand.values);
+}
+
+// Campos visíveis (com condicionais ativos) de um ITEM: tipo + IA + item-extra.
+export function itemVisibleFields(item: DemandItem): FieldDef[] {
+  return expandFields([...effectiveItemFields(item), ...ITEM_EXTRA_FIELDS], item.values);
 }

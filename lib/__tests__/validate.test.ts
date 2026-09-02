@@ -2,49 +2,32 @@ import { describe, it, expect } from "vitest";
 import { validateRequired } from "@/lib/validate";
 import type { DemandData } from "@/lib/demand-map";
 
-describe("validateRequired", () => {
-  it("aponta obrigatórios vazios do tronco e do galho", () => {
-    const demand: DemandData = { typeId: "offline-sinalizacao", values: {} };
-    const missing = validateRequired(demand).map((f) => f.id);
-    // tronco obrigatórios
-    expect(missing).toContain("cliente");
-    expect(missing).toContain("objetivo");
-    expect(missing).toContain("prazo");
-    expect(missing).toContain("prioridade");
-    // galho offline obrigatórios
-    expect(missing).toContain("medida_real");
-    expect(missing).toContain("quantidade");
-    expect(missing).toContain("aplicacao_local");
+describe("validateRequired (campanha + itens)", () => {
+  it("aponta obrigatórios de campanha e de item, com o itemId", () => {
+    const demand: DemandData = { values: {}, items: [{ id: "i1", typeId: "offline-sinalizacao", values: {} }] };
+    const missing = validateRequired(demand);
+    const campIds = missing.filter((m) => m.itemId === null).map((m) => m.field.id);
+    expect(campIds).toEqual(expect.arrayContaining(["cliente", "objetivo", "prazo", "prioridade"]));
+    const itemIds = missing.filter((m) => m.itemId === "i1").map((m) => m.field.id);
+    expect(itemIds).toEqual(expect.arrayContaining(["medida_real", "quantidade", "aplicacao_local"]));
   });
 
-  it("ignora campos opcionais", () => {
-    const demand: DemandData = { typeId: "offline-sinalizacao", values: {} };
-    const missing = validateRequired(demand).map((f) => f.id);
-    expect(missing).not.toContain("publico");
-    expect(missing).not.toContain("observacoes");
-    expect(missing).not.toContain("acabamento");
+  it("item sem tipo é sinalizado com __tipo", () => {
+    const demand: DemandData = { values: {}, items: [{ id: "i1", typeId: "", values: {} }] };
+    const ids = validateRequired(demand).filter((m) => m.itemId === "i1").map((m) => m.field.id);
+    expect(ids).toContain("__tipo");
   });
 
-  it("trata string só de espaços como vazio", () => {
+  it("lista vazia quando tudo obrigatório está preenchido", () => {
     const demand: DemandData = {
-      typeId: "outros",
-      values: { descricao_livre: "   " },
-    };
-    const missing = validateRequired(demand).map((f) => f.id);
-    expect(missing).toContain("descricao_livre");
-  });
-
-  it("retorna lista vazia quando tudo obrigatório está preenchido", () => {
-    const demand: DemandData = {
-      typeId: "outros",
-      values: {
-        cliente: "Loja X",
-        objetivo: "Divulgar inauguração",
-        prazo: "2026-09-05",
-        prioridade: "Alta",
-        descricao_livre: "Precisa de um material simples",
-      },
+      values: { cliente: "X", objetivo: "o", prazo: "2026-09-05", prioridade: "Alta" },
+      items: [{ id: "i1", typeId: "outros", values: { descricao_livre: "algo" } }],
     };
     expect(validateRequired(demand)).toEqual([]);
+  });
+
+  it("prioridade Urgente exige Motivo da urgência (campanha)", () => {
+    const demand: DemandData = { values: { prioridade: "Urgente" }, items: [] };
+    expect(validateRequired(demand).map((m) => m.field.id)).toContain("motivo_urgencia");
   });
 });

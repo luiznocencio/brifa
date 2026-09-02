@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { saveDraft, loadDraft, clearDraft, DRAFT_KEY } from "@/lib/draft";
 import type { DemandData } from "@/lib/demand-map";
 
-const demand: DemandData = { typeId: "social-post", values: { cliente: "Loja X" } };
+const demand: DemandData = { values: { cliente: "Loja X" }, items: [{ id: "i1", typeId: "social-post", values: {} }] };
 
 describe("rascunho local", () => {
   beforeEach(() => localStorage.clear());

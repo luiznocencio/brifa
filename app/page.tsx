@@ -1,52 +1,95 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDemand } from "@/lib/useDemand";
 import { DemandForm } from "@/components/DemandForm";
 import { FreeTextIntake } from "@/components/FreeTextIntake";
-import { CustomFieldsBuilder } from "@/components/CustomFieldsBuilder";
 import { GapReview } from "@/components/GapReview";
 import { OutputPreview } from "@/components/OutputPreview";
 import { validateRequired } from "@/lib/validate";
 import { aiRedact } from "@/lib/ai-client";
 import { saveDraft, loadDraft, clearDraft } from "@/lib/draft";
+import { makeItemId, type DemandData } from "@/lib/demand-map";
 import type { InterpretResult } from "@/lib/ai-core";
 import { Button } from "@/components/ui/Button";
 
+function hasContent(demand: DemandData): boolean {
+  if (Object.values(demand.values).some((v) => v && v.trim())) return true;
+  return demand.items.some((it) => it.typeId || Object.values(it.values).some((v) => v && v.trim()));
+}
+
 export default function Page() {
-  const { demand, setType, setValue, setCustomFields, setAll, reset } = useDemand();
+  const {
+    demand,
+    setCampaignValue,
+    addItem,
+    removeItem,
+    setItemType,
+    setItemValue,
+    setItemCustomFields,
+    setAll,
+    reset,
+  } = useDemand();
+
   const [gaps, setGaps] = useState<string[]>([]);
-  const [missingIds, setMissingIds] = useState<string[]>([]);
+  const [campaignMissingIds, setCampaignMissingIds] = useState<string[]>([]);
+  const [itemMissing, setItemMissing] = useState<Record<string, string[]>>({});
   const [output, setOutput] = useState<string>("");
   const [generating, setGenerating] = useState(false);
   const [restored, setRestored] = useState(false);
+  const initRef = useRef(false);
 
-  // Restaura rascunho ao montar.
+  // Restaura rascunho ao montar; senão, começa com um item vazio.
+  // Restauração pós-mount é intencional (evita mismatch de hidratação SSR); o
+  // ref garante uma única execução mesmo no double-invoke do StrictMode.
   useEffect(() => {
+    if (initRef.current) return;
+    initRef.current = true;
     const draft = loadDraft();
-    if (draft) setAll(draft);
-    // Restauração pós-mount é intencional (evita mismatch de hidratação SSR):
-    // renderiza vazio no servidor/primeiro paint e só então aplica o rascunho.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (draft && draft.items.length > 0) setAll(draft);
+    else addItem();
     setRestored(true);
-  }, [setAll]);
+  }, [setAll, addItem]);
 
-  // Autosave (só depois de restaurar, pra não sobrescrever com vazio).
+  // Autosave (só depois de restaurar e só quando há conteúdo real).
   useEffect(() => {
-    if (restored && demand.typeId) saveDraft(demand);
+    if (restored && hasContent(demand)) saveDraft(demand);
   }, [demand, restored]);
 
   function handleInterpreted(result: InterpretResult) {
-    setAll({ typeId: result.typeId, values: { ...demand.values, ...result.values } });
+    const items = (result.items.length > 0 ? result.items : [{ typeId: "", values: {} }]).map((it) => ({
+      id: makeItemId(),
+      typeId: it.typeId,
+      values: it.values ?? {},
+    }));
+    setAll({ values: { ...demand.values, ...result.campaignValues }, items });
   }
 
   async function handleGenerate() {
     const missing = validateRequired(demand);
-    setMissingIds(missing.map((f) => f.id));
-    setGaps(missing.map((f) => `Falta preencher: ${f.label}.`));
-    if (missing.length > 0) {
+    const campMissing = missing.filter((m) => m.itemId === null).map((m) => m.field.id);
+    const perItem: Record<string, string[]> = {};
+    for (const m of missing) {
+      if (m.itemId) (perItem[m.itemId] ??= []).push(m.field.id);
+    }
+    setCampaignMissingIds(campMissing);
+    setItemMissing(perItem);
+
+    const idxOf = (itemId: string) => demand.items.findIndex((it) => it.id === itemId) + 1;
+    const gapList = [
+      ...(demand.items.length === 0 ? ["Adicione ao menos um item à campanha."] : []),
+      ...missing.map((m) =>
+        m.itemId === null
+          ? `Falta preencher: ${m.field.label}.`
+          : `Item ${idxOf(m.itemId)}: falta ${m.field.label}.`,
+      ),
+    ];
+    setGaps(gapList);
+
+    if (gapList.length > 0) {
       setOutput("");
       return;
     }
+
     setGenerating(true);
     try {
       const { text } = await aiRedact(demand);
@@ -62,16 +105,20 @@ export default function Page() {
 
   function handleReset() {
     reset();
+    addItem();
     clearDraft();
     setGaps([]);
-    setMissingIds([]);
+    setCampaignMissingIds([]);
+    setItemMissing({});
     setOutput("");
   }
+
+  const canGenerate = !generating && demand.items.length > 0;
 
   return (
     <main
       className="mx-auto flex w-full flex-col gap-6 px-6 py-10 md:py-[var(--space-4xl)]"
-      style={{ maxWidth: 760 }}
+      style={{ maxWidth: 820 }}
     >
       <header className="flex flex-col gap-1.5">
         <h1
@@ -85,29 +132,28 @@ export default function Page() {
           Pauta de Demandas
         </h1>
         <p style={{ fontFamily: "var(--font-body)", fontSize: "var(--text-body-sm)", color: "var(--text-muted)" }}>
-          Descreva ou preencha a demanda; a ferramenta monta o texto técnico pra gestão.
+          Uma campanha pode ter vários itens. Descreva ou preencha; a ferramenta monta o texto técnico pra gestão.
         </p>
       </header>
 
       <FreeTextIntake onInterpreted={handleInterpreted} />
-      <DemandForm demand={demand} onSetType={setType} onSetValue={setValue} missingIds={missingIds} />
-      {demand.typeId === "outros" && (
-        <CustomFieldsBuilder
-          description={demand.values.descricao_livre ?? ""}
-          hasFields={Boolean(demand.customFields && demand.customFields.length > 0)}
-          onProposed={setCustomFields}
-        />
-      )}
+
+      <DemandForm
+        demand={demand}
+        onCampaignValue={setCampaignValue}
+        onAddItem={addItem}
+        onRemoveItem={removeItem}
+        onSetItemType={setItemType}
+        onSetItemValue={setItemValue}
+        onSetItemCustomFields={setItemCustomFields}
+        campaignMissingIds={campaignMissingIds}
+        itemMissing={itemMissing}
+      />
+
       <GapReview gaps={gaps} />
 
       <div className="flex gap-3">
-        <Button
-          type="button"
-          onClick={handleGenerate}
-          disabled={generating || !demand.typeId}
-          variant="filled"
-          size="large"
-        >
+        <Button type="button" onClick={handleGenerate} disabled={!canGenerate} variant="filled" size="large">
           {generating ? "Gerando…" : "Gerar texto"}
         </Button>
         <Button type="button" onClick={handleReset} variant="outlined" size="large">

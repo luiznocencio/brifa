@@ -56,14 +56,23 @@ describe("generateDemandText", () => {
     expect(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(text)).toBe(false);
   });
 
-  it("mostra rótulo mesmo com valor vazio (campo pendente)", () => {
+  it("omite campos técnicos vazios (só entra o que foi preenchido)", () => {
+    // No offline fixture, acabamento / data_instalacao / fornecedor estão vazios.
+    const text = generateDemandText(offline);
+    expect(text).not.toContain("Acabamento:");
+    expect(text).not.toContain("Fornecedor / Gráfica:");
+    expect(text).not.toContain("Data de instalação");
+    // e os preenchidos continuam presentes
+    expect(text).toContain("Material: Lona");
+  });
+
+  it("omite a seção OBJETIVO quando vazia", () => {
     const semObjetivo: DemandData = {
       typeId: "social-post",
-      values: { cliente: "Y", formato: "Feed 1:1", onde_veicula: "Instagram" },
+      values: { cliente: "Y", formato: "Feed 1:1", onde_veicula: "Instagram", prazo: "2026-09-05", prioridade: "Alta" },
     };
     const text = generateDemandText(semObjetivo);
-    // objetivo vazio ainda aparece como bloco rotulado
-    expect(text).toContain("OBJETIVO");
+    expect(text).not.toContain("OBJETIVO");
   });
 
   it("renderiza observacoes com rótulo quando preenchida", () => {
@@ -86,22 +95,20 @@ describe("generateDemandText", () => {
     expect(text).toContain("Observações: Cuidado com a cor da marca");
   });
 
-  it("mostra rótulo Observações mesmo quando vazio (consistência)", () => {
-    const semObservacoes: DemandData = {
-      typeId: "offline-sinalizacao",
-      values: {
-        cliente: "Loja X — Inauguração",
-            objetivo: "Comunicar a nova loja na fachada",
-        publico: "Clientes do bairro",
-        prazo: "2026-09-05",
-        prioridade: "Alta",
-            medida_real: "200 x 90 cm",
-        material: "Lona",
-        quantidade: "1",
-        aplicacao_local: "Fachada da loja nova",
-      },
+  it("omite Observações vazia mas mantém o Público preenchido", () => {
+    // offline fixture tem publico preenchido e observacoes vazia.
+    const text = generateDemandText(offline);
+    expect(text).toContain("PUBLICO / OBSERVACOES");
+    expect(text).toContain("Público-alvo: Clientes do bairro");
+    expect(text).not.toContain("Observações:");
+  });
+
+  it("omite a seção PUBLICO / OBSERVACOES quando ambos vazios", () => {
+    const semPublicoNemObs: DemandData = {
+      typeId: "social-post",
+      values: { cliente: "Y", objetivo: "obj", formato: "Feed 1:1", onde_veicula: "Instagram", prazo: "2026-09-05", prioridade: "Alta" },
     };
-    const text = generateDemandText(semObservacoes);
-    expect(text).toContain("Observações:");
+    const text = generateDemandText(semPublicoNemObs);
+    expect(text).not.toContain("PUBLICO / OBSERVACOES");
   });
 });

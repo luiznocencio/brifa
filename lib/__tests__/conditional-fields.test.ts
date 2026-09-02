@@ -1,8 +1,22 @@
 import { describe, it, expect } from "vitest";
-import { expandFields, type FieldDef, type DemandData } from "@/lib/demand-map";
+import { expandFields, getFieldsForDemand, type FieldDef, type DemandData } from "@/lib/demand-map";
 import { validateRequired } from "@/lib/validate";
 import { generateDemandText } from "@/lib/generate-text";
 import { normalizeCustomFields } from "@/lib/ai-core";
+
+describe("condicional universal do tronco: Prioridade = Urgente", () => {
+  it("não revela Motivo da urgência com prioridade normal", () => {
+    const d: DemandData = { typeId: "social-post", values: { prioridade: "Alta" } };
+    expect(getFieldsForDemand(d).map((f) => f.id)).not.toContain("motivo_urgencia");
+  });
+
+  it("revela e exige Motivo da urgência quando Urgente", () => {
+    const d: DemandData = { typeId: "social-post", values: { prioridade: "Urgente" } };
+    expect(getFieldsForDemand(d).map((f) => f.id)).toContain("motivo_urgencia");
+    // é obrigatório: com o motivo vazio, entra nas lacunas
+    expect(validateRequired(d).map((f) => f.id)).toContain("motivo_urgencia");
+  });
+});
 
 const withReveal: FieldDef[] = [
   {

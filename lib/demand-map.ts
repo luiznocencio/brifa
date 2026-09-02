@@ -32,7 +32,14 @@ export const TRUNK_FIELDS: FieldDef[] = [
   { id: "objetivo", label: "Objetivo da peça", type: "textarea", required: true, placeholder: "Ex.: Divulgar a inauguração da nova loja e atrair moradores do bairro" },
   { id: "publico", label: "Público-alvo", type: "text", required: false, placeholder: "Ex.: Mulheres 25–40, clientes da região" },
   { id: "prazo", label: "Prazo de entrega", type: "date", required: true },
-  { id: "prioridade", label: "Prioridade", type: "select", required: true, options: ["Baixa", "Média", "Alta", "Urgente"] },
+  {
+    id: "prioridade", label: "Prioridade", type: "select", required: true, options: ["Baixa", "Média", "Alta", "Urgente"],
+    reveal: {
+      Urgente: [
+        { id: "motivo_urgencia", label: "Motivo da urgência", type: "text", required: true, placeholder: "Ex.: cliente tem evento no dia 05/09" },
+      ],
+    },
+  },
   { id: "observacoes", label: "Observações", type: "textarea", required: false, placeholder: "Ex.: Usar a foto nova da fachada; cliente pediu urgência" },
 ];
 
@@ -124,7 +131,24 @@ export const DEMAND_TYPES: DemandTypeDef[] = [
   {
     id: "branding", category: "Identidade / Branding", label: "Identidade / Branding",
     fields: [
-      { id: "entregavel", label: "Tipo de entregável", type: "text", required: true, placeholder: "Ex.: Logo, manual da marca, papelaria" },
+      {
+        id: "entregavel", label: "Tipo de entregável", type: "select", required: true,
+        options: ["Logo", "Manual de marca", "Papelaria", "Identidade completa"],
+        reveal: {
+          Logo: [
+            { id: "variacoes_logo", label: "Variações necessárias", type: "text", required: false, placeholder: "Ex.: horizontal, vertical, símbolo, monocromática" },
+          ],
+          "Manual de marca": [
+            { id: "itens_manual", label: "O que o manual cobre", type: "textarea", required: false, placeholder: "Ex.: cores, tipografia, usos corretos/incorretos, grid" },
+          ],
+          Papelaria: [
+            { id: "itens_papelaria", label: "Itens de papelaria", type: "text", required: false, placeholder: "Ex.: cartão, timbrado, envelope, assinatura de e-mail" },
+          ],
+          "Identidade completa": [
+            { id: "escopo_identidade", label: "Escopo da identidade", type: "textarea", required: false, placeholder: "Ex.: logo, manual, papelaria, social, sinalização" },
+          ],
+        },
+      },
       { id: "aplicacoes", label: "Aplicações necessárias", type: "textarea", required: false, placeholder: "Ex.: Cartão, assinatura de e-mail, fachada" },
       { id: "arquivos_finais", label: "Arquivos finais", type: "text", required: false, placeholder: "Ex.: AI, PDF, PNG, SVG" },
     ],
